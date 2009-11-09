@@ -84,6 +84,13 @@ sub dumpInfo {
 
 sub readBlock {
     my ($self, $block) = @_;
+
+    my $mp = mifare_param->new();
+    my $mpt = $mp->_to_ptr;
+    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi},MC_READ,$block,$mpt)) {
+        return unpack("a16", $mpt->mpd); 
+    }
+    return undef;
 }
 
 sub writeBlock {
@@ -92,6 +99,21 @@ sub writeBlock {
 
 sub readSector {
     my ($self, $sector) = @_;
+    my $tblock;
+    my $nblocks;
+    return unless ($self->unlock($sector));
+    if ($sector < 32) {
+        $nblocks = 4;
+        $tblock = (($sector+1) * $nblocks) -1;
+    } else {
+        $nblocks = 16;
+        $tblock = 127 + ((($sector+1) * $nblocks) -1);
+    }
+    my $data;
+    for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
+        $data .= $self->readBlock($i);
+    }
+    return $data;
 }
 
 sub writeSector {

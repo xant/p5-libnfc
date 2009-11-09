@@ -28,15 +28,16 @@ if (ok ($r->init())) {
 
 
 
-my @keys = (
-    pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
-    pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
-);
+    my @keys = (
+        pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
+        pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
+    );
 
-$tag->setKeys(@keys);
+    $tag->setKeys(@keys);
 
-#warn Dumper($tag);
+    #warn Dumper($tag);
 
-warn Dumper($tag->unlock(0)); 
-warn Dumper($tag->unlock(1)); 
+    my $data = $tag->read(0);
+    printf("Reading sector 0 : ". "%x " x length($data) . "\n", 
+            unpack("C".length($data), $data));
 }
