@@ -1,0 +1,43 @@
+_Bool						T_IV
+byte_t						T_U_CHAR
+byte_t *					T_PV
+const byte_t *					T_PV
+const dev_info *				T_PTROBJ
+void *                                          T_PTROBJ
+const void *					T_PTROBJ
+dev_spec                                        T_PTROBJ
+dev_config_option				T_U_CHAR
+mifare_param                                    T_OPAQUE_STRUCT
+tag_info                                        T_OPAQUE_STRUCT
+tag_info *					T_PTROBJ
+tag_infoPtr					T_PTROBJ
+chip_type					T_U_CHAR
+dev_info                                        T_OPAQUE_STRUCT
+dev_info *					T_PTROBJ
+dev_infoPtr					T_PTROBJ
+chip_type					T_U_CHAR
+init_modulation					T_UV
+mifare_cmd					T_PTROBJ
+mifare_param *					T_PTROBJ
+uint32_t					T_UV
+uint32_t *					T_PTROBJ
+uint64_t					T_NV
+uint8_t						T_U_CHAR
+#############################################################################
+INPUT
+T_OPAQUE_STRUCT
+	if (sv_derived_from($arg, \"${ntype}\")) {
+	    STRLEN len;
+	    char  *s = SvPV((SV*)SvRV($arg), len);
+
+	    if (len != sizeof($var))
+		croak(\"Size %d of packed data != expected %d\",
+			len, sizeof($var));
+	    $var = *($type *)s;
+	}
+	else
+	    croak(\"$var is not of type ${ntype}\")
+#############################################################################
+OUTPUT
+T_OPAQUE_STRUCT
+	sv_setref_pvn($arg, \"${ntype}\", (char *)&$var, sizeof($var));

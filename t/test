@@ -1,0 +1,31 @@
+# Before `make install' is performed this script should be runnable with
+# `make test'. After `make install' it should work as `perl Libnfc.t'
+
+#########################
+
+# change 'tests => 1' to 'tests => last_test_to_print';
+
+use Test::More qw(no_plan);
+use Data::Dumper;
+BEGIN { use_ok('Libnfc::Reader') };
+use Libnfc::CONSTANTS ':all';
+
+#########################
+
+# Insert your test code below, the Test::More module is use()ed here so read
+# its man page ( perldoc Test::More ) for help writing this test script.
+
+my $b = mifare_param->new();
+my $c = $b->_to_ptr;
+warn Dumper($c);
+
+# mpa
+printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $c->mpa)); 
+$c->mpa(pack("C6", 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0), pack("C4", 0xB0, 0xB0, 0xB0, 0xB0));
+printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $c->mpa)); 
+
+#mpd
+printf("%x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", unpack("C16", $c->mpd)); 
+$c->mpd(pack("C16", 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0));
+printf("%x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", unpack("C16", $c->mpd)); 
+printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $c->mpa)); 

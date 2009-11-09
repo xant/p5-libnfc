@@ -1,0 +1,6 @@
+Revision history for Perl extension Libnfc.
+
+0.01  Sun Nov  8 19:31:24 2009
+	- original version; created by h2xs 1.23 with options
+		-gx /usr/local/include/libnfc/libnfc.h
+
