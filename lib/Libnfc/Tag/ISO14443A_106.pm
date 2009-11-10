@@ -27,14 +27,14 @@ use Libnfc::CONSTANTS ':all';
 #      - NEVER read KeyB
 #      - write KeyB using KeyB
 my %trailer_acl = (
-    pack("C3", 0, 0, 0) => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 1 ] },
-    pack("C3", 0, 1, 0) => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 0 ] },
-    pack("C3", 1, 0, 0) => { A => [ 0, 2 ], ACL => [ 3, 0 ], B => [ 0, 2 ] },
-    pack("C3", 1, 1, 0) => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] },
-    pack("C3", 0, 0, 1) => { A => [ 0, 1 ], ACL => [ 1, 1 ], B => [ 1, 1 ] },
-    pack("C3", 0, 1, 1) => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
-    pack("C3", 1, 0, 1) => { A => [ 0, 0 ], ACL => [ 3, 2 ], B => [ 0, 0 ] },
-    pack("C3", 1, 1, 1) => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] }
+    pack("b", "000") => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 1 ] },
+    pack("b", "010") => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 0 ] },
+    pack("b", "100") => { A => [ 0, 2 ], ACL => [ 3, 0 ], B => [ 0, 2 ] },
+    pack("b", "110") => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] },
+    pack("b", "001") => { A => [ 0, 1 ], ACL => [ 1, 1 ], B => [ 1, 1 ] },
+    pack("b", "011") => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
+    pack("b", "101") => { A => [ 0, 0 ], ACL => [ 3, 2 ], B => [ 0, 0 ] },
+    pack("b", "111") => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] }
 );
 
 # Internal representation of TABLE 4 (M001053_MF1ICS50_rev5_3.pdf)
@@ -57,14 +57,14 @@ my %trailer_acl = (
 #       - never decrement/restore the block
 #
 my %data_acl = (
-    pack("C3", 0, 0, 0) => [ 3, 3, 3, 3 ],
-    pack("C3", 0, 1, 0) => [ 3, 0, 0, 0 ],
-    pack("C3", 1, 0, 0) => [ 3, 2, 0, 0 ],
-    pack("C3", 1, 1, 0) => [ 3, 2, 2, 3 ],
-    pack("C3", 0, 0, 1) => [ 3, 0, 0, 3 ],
-    pack("C3", 0, 1, 1) => [ 2, 2, 0, 0 ],
-    pack("C3", 1, 0, 1) => [ 2, 0, 0, 0 ],
-    pack("C3", 1, 1, 1) => [ 0, 0, 0, 0 ],
+    pack("b", "000") => [ 3, 3, 3, 3 ],
+    pack("b", "010") => [ 3, 0, 0, 0 ],
+    pack("b", "100") => [ 3, 2, 0, 0 ],
+    pack("b", "110") => [ 3, 2, 2, 3 ],
+    pack("b", "001") => [ 3, 0, 0, 3 ],
+    pack("b", "011") => [ 2, 2, 0, 0 ],
+    pack("b", "101") => [ 2, 0, 0, 0 ],
+    pack("b", "111") => [ 0, 0, 0, 0 ],
 );
 
 sub type {
@@ -259,10 +259,10 @@ sub _parse_acl {
         }
     );
     $acl{parsed} = {
-        data0   => pack("C3", $acl{raw}->{c1}->[0], $acl{raw}->{c2}->[0], $acl{raw}->{c3}->[0]),
-        data1   => pack("C3", $acl{raw}->{c1}->[1], $acl{raw}->{c2}->[1], $acl{raw}->{c3}->[1]),
-        data2   => pack("C3", $acl{raw}->{c1}->[2], $acl{raw}->{c2}->[2], $acl{raw}->{c3}->[2]),
-        trailer => pack("C3", $acl{raw}->{c1}->[3], $acl{raw}->{c2}->[3], $acl{raw}->{c3}->[3])
+        data0   => pack("b", "$acl{raw}->{c1}->[0]$acl{raw}->{c2}->[0]$acl{raw}->{c3}->[0]"),
+        data1   => pack("b", "$acl{raw}->{c1}->[1]$acl{raw}->{c2}->[1]$acl{raw}->{c3}->[1]"),
+        data2   => pack("b", "$acl{raw}->{c1}->[2]$acl{raw}->{c2}->[2]$acl{raw}->{c3}->[2]"),
+        trailer => pack("b", "$acl{raw}->{c1}->[3]$acl{raw}->{c2}->[3]$acl{raw}->{c3}->[3]")
     };
 
     return wantarray?%acl:\%acl;
