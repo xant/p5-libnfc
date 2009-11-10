@@ -76,9 +76,3 @@ if ($pti->uiAtsLen) {
   
 nfc_disconnect($pdi);
 
-#  printf("KEY:\t");
-#  if(user_defined_key) {
-#    dump_key(key);
-#    printf("\n");
-#  } else
-#    printf("known defaults\n");

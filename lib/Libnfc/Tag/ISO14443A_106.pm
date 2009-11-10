@@ -147,30 +147,33 @@ sub dumpInfo {
 sub readBlock {
     my ($self, $block, $noauth) = @_;
 
-    use integer;
+    use integer; # force integer arithmetic to round divisions
 
-    my $sector;
-    if ($block < 128) {
+    my $sector; # sort out the sector we are going to access
+    if ($block < 128) { # small data blocks : 4 x 16 bytes
         $sector = $block/4;
-    } else {
+    } else { # big datablocks : 16 x 16 bytes
         $sector = 32 + ($block - 128)/16;
     }
-    # try to do authentication only if we have keys loaded
-    if (scalar(@{$self->{_keys}}) >= $sector && !$noauth) { 
-        my $acl = $self->acl($sector);
-        my $step = ($sector < 32)?4:16;
-        my $datanum = "data".($block % $step);
-        if ($acl && $acl->{parsed}->{$datanum}) {
-            unless (@{$data_acl{$acl->{parsed}->{$datanum}}}[0]) {
-                $self->{_last_error} = "ACL denies reads on sector $sector, block $block";
-                return undef;
-            }
+    
+    # check the ack for this datablock
+    my $acl = $self->acl($sector);
+    my $step = ($sector < 32)?4:16;
+    my $datanum = "data".($block % $step);
+    if ($acl && $acl->{parsed}->{$datanum}) {
+        unless (@{$data_acl{$acl->{parsed}->{$datanum}}}[0]) {
+            $self->{_last_error} = "ACL denies reads on sector $sector, block $block";
+            return undef;
         }
+    }
+
+    # try to do authentication only if we have required keys loaded
+    if (scalar(@{$self->{_keys}}) >= $sector && !$noauth) { 
         $self->unlock($sector, (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
-    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi},MC_READ,$block,$mpt)) {
+    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_READ, $block, $mpt)) {
         my $j = $mpt->mpd;
         return unpack("a16", $mpt->mpd); 
     } else {
@@ -231,7 +234,7 @@ sub unlock {
     $keytype = MC_AUTH_A unless ($keytype and ($keytype == MC_AUTH_A or $keytype == MC_AUTH_B));
     my $keyidx = ($keytype == MC_AUTH_A) ? 0 : 1;
     my $p = tag_info->new();
-    #warn nfc_initiator_select_tag($self->{reader}->{_pdi},IM_ISO14443A_106,$self->{_pti}->abtUid,4, $p->_to_ptr);
+    #warn nfc_initiator_select_tag($self->{reader}->{_pdi}, IM_ISO14443A_106, $self->{_pti}->abtUid, 4, $p->_to_ptr);
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     # trying key a
@@ -248,9 +251,12 @@ sub acl {
     my $tblock = $self->_trailer_block($sector);
 
     if ($self->unlock($sector)) {
-        my $data = $self->readBlock($tblock, 1);
-        #return unpack("x6a4x6", $data) if ($data);
-        return $self->_parse_acl(unpack("x6a4x6", $data)) if ($data);
+        my $mp = mifare_param->new();
+        my $mpt = $mp->_to_ptr;
+        if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_READ, $tblock, $mpt)) {
+            my $j = $mpt->mpd;
+            return $self->_parse_acl(unpack("x6a4x6", $mpt->mpd));
+        }
     }
     return undef;
 }

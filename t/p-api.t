@@ -23,26 +23,15 @@ if (ok ($r->init())) {
     my $tag = $r->connectTag(IM_ISO14443A_106);
 
     if (ok $tag) {
-        $tag->dumpInfo
+        $tag->dumpInfo;
+
+        my @keys = (
+            pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
+            pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
+        );
+
+        $tag->setKeys(@keys);
+
+        # todo complete testunit
     }
-
-
-
-    my @keys = (
-        pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
-        pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
-    );
-
-    $tag->setKeys(@keys);
-
-    #warn Dumper($tag);
-
-    my $data = $tag->read(0);
-    printf("Reading sector 0 : ". "%x " x length($data) . "\n", 
-            unpack("C".length($data), $data));
-    my $data = $tag->readBlock(3);
-    printf("Reading block 3 : ". "%x " x length($data) . "\n", 
-            unpack("C".length($data), $data));
-    my $acl = $tag->acl(0);
-    warn Dumper($acl);
 }
