@@ -168,16 +168,16 @@ sub readSector {
         $tblock = (($sector+1) * $nblocks) -1;
     } else {
         $nblocks = 16;
-        $tblock = 127 + ((($sector+1) * $nblocks) -1);
+        $tblock = 127 + (($sector - 31) * $nblocks);
     }
     my $data;
     my $acl = $self->acl($sector);
 
     return unless ($self->unlock($sector));
     my $keytype = MC_AUTH_A; #defaults to KeyA
-                use Data::Dumper;
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
-        my $datanum = "data".($i%4);
+        my $step = ($sector < 32)?4:16;
+        my $datanum = "data".($i % $step);
         if ($acl && $acl->{parsed}->{$datanum}) {
             #warn Dumper($acl);
             my $newkey = (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A;
@@ -219,7 +219,7 @@ sub unlock {
     my $mpt = $mp->_to_ptr;
     # trying key a
     $mpt->mpa($self->{keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
-    #printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $mpt->mpa));
+    printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $mpt->mpa));
 
     return 1 if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, $keytype, $tblock, $mpt));
     return 0;
