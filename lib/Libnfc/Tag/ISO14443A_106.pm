@@ -27,6 +27,7 @@ use Libnfc::CONSTANTS ':all';
 #      - NEVER read KeyB
 #      - write KeyB using KeyB
 my %trailer_acl = (
+    #    | KEYA   R  W  | ACL      R  W  | KEYB   R  W   | 
     0 => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 1 ] },
     1 => { A => [ 0, 1 ], ACL => [ 1, 1 ], B => [ 1, 1 ] },
     2 => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 0 ] },
@@ -56,15 +57,15 @@ my %trailer_acl = (
 #       - never increment the block
 #       - never decrement/restore the block
 #
-my %data_acl = (
-    0 => [ 3, 3, 3, 3 ],
-    1 => [ 3, 0, 0, 3 ],
-    2 => [ 3, 0, 0, 0 ],
-    3 => [ 2, 2, 0, 0 ],
-    4 => [ 3, 2, 0, 0 ],
-    5 => [ 2, 0, 0, 0 ],
-    6 => [ 3, 2, 2, 3 ],
-    7 => [ 0, 0, 0, 0 ]
+my %data_acl = (            # read, write, increment, decrement/restore/transfer
+    0 => [ 3, 3, 3, 3 ],    #  A|B   A|B      A|B        A|B
+    1 => [ 3, 0, 0, 3 ],    #  A|B   never    never      A|B
+    2 => [ 3, 0, 0, 0 ],    #  A|B   never    never      never
+    3 => [ 2, 2, 0, 0 ],    #  B     B        never      never
+    4 => [ 3, 2, 0, 0 ],    #  A|B   B        never      never
+    5 => [ 2, 0, 0, 0 ],    #  B     never    never      never
+    6 => [ 3, 2, 2, 3 ],    #  A|B   B        B          A|B
+    7 => [ 0, 0, 0, 0 ]     #  never never    never      never
 );
 
 sub type {
@@ -258,7 +259,7 @@ sub _parse_acl {
     my ($self, $data) = @_;
     my ($b1, $b2, $b3, $b4) = unpack("C4", $data);
     my %acl = (
-        raw => { 
+        bits => { 
             c1 => [
                 ($b2 >> 4) & 1,
                 ($b2 >> 5) & 1,
@@ -280,10 +281,10 @@ sub _parse_acl {
         }
     );
     $acl{parsed} = {
-        data0   => $acl{raw}->{c1}->[0] | ($acl{raw}->{c2}->[0] << 1) | ($acl{raw}->{c3}->[0] << 2),
-        data1   => $acl{raw}->{c1}->[1] | ($acl{raw}->{c2}->[1] << 1) | ($acl{raw}->{c3}->[1] << 2),
-        data2   => $acl{raw}->{c1}->[2] | ($acl{raw}->{c2}->[2] << 1) | ($acl{raw}->{c3}->[2] << 2),
-        trailer => $acl{raw}->{c1}->[3] | ($acl{raw}->{c2}->[3] << 1) | ($acl{raw}->{c3}->[3] << 2)
+        data0   => $acl{bits}->{c1}->[0] | ($acl{bits}->{c2}->[0] << 1) | ($acl{bits}->{c3}->[0] << 2),
+        data1   => $acl{bits}->{c1}->[1] | ($acl{bits}->{c2}->[1] << 1) | ($acl{bits}->{c3}->[1] << 2),
+        data2   => $acl{bits}->{c1}->[2] | ($acl{bits}->{c2}->[2] << 1) | ($acl{bits}->{c3}->[2] << 2),
+        trailer => $acl{bits}->{c1}->[3] | ($acl{bits}->{c2}->[3] << 1) | ($acl{bits}->{c3}->[3] << 2)
     };
 
     return wantarray?%acl:\%acl;
