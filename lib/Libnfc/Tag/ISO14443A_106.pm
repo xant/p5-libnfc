@@ -112,8 +112,7 @@ sub readSector {
     }
     my $data;
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
-        $data = $self->readBlock($i);
-        warn length($data);
+        $data .= $self->readBlock($i);
     }
     return $data;
 }
@@ -134,12 +133,7 @@ sub write {
 
 sub unlock {
     my ($self, $sector) = @_;
-    my $tblock;
-    if ($sector < 32) {
-        $tblock = (($sector+1) * 4) -1;
-    } else {
-        $tblock = 127 + ((($sector+1) * 16) -1);
-    }
+    my $tblock = $self->_trailer_block($sector);
 
     my $p = tag_info->new();
     #warn nfc_initiator_select_tag($self->{reader}->{_pdi},IM_ISO14443A_106,$self->{_pti}->abtUid,4, $p->_to_ptr);
@@ -156,6 +150,60 @@ sub unlock {
         return 1 if (nfc_initiator_mifare_cmd($self->{_pdi}, MC_AUTH_B, $tblock, $mpt));
     }
     return 0;
+}
+
+sub acl {
+    my ($self, $sector) = @_;
+    my $tblock = $self->_trailer_block($sector);
+
+    if ($self->unlock($sector)) {
+        my $data = $self->readBlock($tblock);
+        #return unpack("x6a4x6", $data) if ($data);
+        return $self->_parse_acl(unpack("x6a4x6", $data)) if ($data);
+    }
+    return undef;
+}
+
+sub _parse_acl {
+    my ($self, $data) = @_;
+    my ($b1, $b2, $b3, $b4) = unpack("C4", $data);
+    my %acl = (
+        raw => { 
+            c1 => [
+                ($b2 >> 4) & 1,
+                ($b2 >> 5) & 1,
+                ($b2 >> 6) & 1,
+                ($b2 >> 7) & 1,
+            ],
+            c2 => [
+                ($b3) & 1,
+                ($b3 >> 1) & 1,
+                ($b3 >> 2) & 1,
+                ($b3 >> 3) & 1,
+            ],
+            c3 => [
+                ($b3 >> 4) & 1,
+                ($b3 >> 5) & 1,
+                ($b3 >> 6) & 1,
+                ($b3 >> 7) & 1,
+            ]
+        }
+    );
+    $acl{parsed}->{data1}   = [ $acl{raw}->{c1}->[0], $acl{raw}->{c2}->[0], $acl{raw}->{c3}->[0] ];
+    $acl{parsed}->{data2}   = [ $acl{raw}->{c1}->[1], $acl{raw}->{c2}->[1], $acl{raw}->{c3}->[1] ];
+    $acl{parsed}->{data3}   = [ $acl{raw}->{c1}->[2], $acl{raw}->{c2}->[2], $acl{raw}->{c3}->[2] ];
+    $acl{parsed}->{trailer} = [ $acl{raw}->{c1}->[3], $acl{raw}->{c2}->[3], $acl{raw}->{c3}->[3] ];
+
+    return wantarray?%acl:\%acl;
+}
+
+sub _trailer_block {
+    my ($self, $sector) = @_;
+    if ($sector < 32) {
+        return (($sector+1) * 4) -1;
+    } else {
+        return  127 + ((($sector+1) * 16) -1);
+    }
 }
 
 1;

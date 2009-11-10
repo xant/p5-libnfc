@@ -40,4 +40,9 @@ if (ok ($r->init())) {
     my $data = $tag->read(0);
     printf("Reading sector 0 : ". "%x " x length($data) . "\n", 
             unpack("C".length($data), $data));
+    my $data = $tag->readBlock(3);
+    printf("Reading block 3 : ". "%x " x length($data) . "\n", 
+            unpack("C".length($data), $data));
+    my $acl = $tag->acl(0);
+    warn Dumper($acl);
 }
