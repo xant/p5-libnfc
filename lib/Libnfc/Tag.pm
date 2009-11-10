@@ -68,13 +68,13 @@ sub blockSector {
 }
 
 sub read {
-    my ($self, $block);
-    my $sector = $self->blockSector($block);
-    $self->unlock($sector);
+    my ($self) = shift;
+    warn "[",ref($self)."] Libnfc::Tag::read() - OVERRIDE ME";
 }
 
 sub write {
-    my ($self, $block, $data);
+    my ($self) = shift;
+    warn "[",ref($self)."] Libnfc::Tag::write() - OVERRIDE ME";
 }
 
 sub dumpKeys {

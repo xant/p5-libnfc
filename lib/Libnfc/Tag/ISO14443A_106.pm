@@ -6,6 +6,67 @@ use base qw(Libnfc::Tag);
 use Libnfc qw(nfc_initiator_select_tag nfc_initiator_mifare_cmd);
 use Libnfc::CONSTANTS ':all';
 
+# Internal representation of TABLE 3 (M001053_MF1ICS50_rev5_3.pdf)
+# the key are the actual ACL bits (C1 C2 C3) ,
+# the value holds read/write condition for : KeyA, ACL, KeyB
+# possible values for read and write conditions are :
+#    0 - operation not possible
+#    1 - operation possible using Key A
+#    2 - operation possible using Key B
+#    3 - operation possible using either Key A or Key B
+#   
+# for instance: 
+#
+#   pack("CCC", 0, 1, 1) => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
+#
+#   means that when C1C2C3 is equal to 011 we can :
+#      - NEVER read keyA
+#      - write keyA using KeyB
+#      - read ACL with any key (either KeyA or KeyB)
+#      - write ACL using KeyB
+#      - NEVER read KeyB
+#      - write KeyB using KeyB
+my %trailer_acl = (
+    pack("C3", 0, 0, 0) => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 1 ] },
+    pack("C3", 0, 1, 0) => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 0 ] },
+    pack("C3", 1, 0, 0) => { A => [ 0, 2 ], ACL => [ 3, 0 ], B => [ 0, 2 ] },
+    pack("C3", 1, 1, 0) => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] },
+    pack("C3", 0, 0, 1) => { A => [ 0, 1 ], ACL => [ 1, 1 ], B => [ 1, 1 ] },
+    pack("C3", 0, 1, 1) => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
+    pack("C3", 1, 0, 1) => { A => [ 0, 0 ], ACL => [ 3, 2 ], B => [ 0, 0 ] },
+    pack("C3", 1, 1, 1) => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] }
+);
+
+# Internal representation of TABLE 4 (M001053_MF1ICS50_rev5_3.pdf)
+# the key are the actual ACL bits (C1 C2 C3) ,
+# the value holds read, write, increment and decrement/restore conditions for the datablock
+# possible values for any operation are :
+#    0 - operation not possible
+#    1 - operation possible using Key A
+#    2 - operation possible using Key B
+#    3 - operation possible using either Key A or Key B
+#
+# for instance: 
+#
+#   pack("CCC", 1, 0, 0) => [ 3, 2, 0, 0 ],
+#   
+#   means that when C1C2C3 is equal to 100 we can :
+#       - read the block using any key (either KeyA or KeyB)
+#       - write the block using KeyB
+#       - never increment the block
+#       - never decrement/restore the block
+#
+my %data_acl = (
+    pack("C3", 0, 0, 0) => [ 3, 3, 3, 3 ],
+    pack("C3", 0, 1, 0) => [ 3, 0, 0, 0 ],
+    pack("C3", 1, 0, 0) => [ 3, 2, 0, 0 ],
+    pack("C3", 1, 1, 0) => [ 3, 2, 2, 3 ],
+    pack("C3", 0, 0, 1) => [ 3, 0, 0, 3 ],
+    pack("C3", 0, 1, 1) => [ 2, 2, 0, 0 ],
+    pack("C3", 1, 0, 1) => [ 2, 0, 0, 0 ],
+    pack("C3", 1, 1, 1) => [ 0, 0, 0, 0 ],
+);
+
 sub type {
     my $self = shift;
     unless ($self->{_type}) {
@@ -102,7 +163,6 @@ sub readSector {
     my ($self, $sector) = @_;
     my $tblock;
     my $nblocks;
-    return unless ($self->unlock($sector));
     if ($sector < 32) {
         $nblocks = 4;
         $tblock = (($sector+1) * $nblocks) -1;
@@ -111,7 +171,19 @@ sub readSector {
         $tblock = 127 + ((($sector+1) * $nblocks) -1);
     }
     my $data;
+    my $acl = $self->acl($sector);
+
+    return unless ($self->unlock($sector));
+    my $keytype = MC_AUTH_A; #defaults to KeyA
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
+        my $datanum = "data".($i%4);
+        if ($acl && $acl->{parsed}->{$datanum}) {
+            my $newkey = (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A;
+            if ($newkey != $keytype) {
+                $keytype = $newkey;
+                $self->unlock_sector($sector, $keytype);
+            }
+        }
         $data .= $self->readBlock($i);
     }
     return $data;
@@ -132,23 +204,20 @@ sub write {
 }
 
 sub unlock {
-    my ($self, $sector) = @_;
+    my ($self, $sector, $keytype) = @_;
     my $tblock = $self->_trailer_block($sector);
 
+    $keytype = MC_AUTH_A unless ($keytype and ($keytype == MC_AUTH_A or $keytype == MC_AUTH_B));
+    my $keyidx = ($keytype == MC_AUTH_A) ? 0 : 1;
     my $p = tag_info->new();
     #warn nfc_initiator_select_tag($self->{reader}->{_pdi},IM_ISO14443A_106,$self->{_pti}->abtUid,4, $p->_to_ptr);
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     # trying key a
-    $mpt->mpa($self->{keys}->[$sector][0], pack("C4", @{$self->uid}));
+    $mpt->mpa($self->{keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
     #printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $mpt->mpa));
 
-    return 1 if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_AUTH_A, $tblock, $mpt));
-    if ($self->{keys}->[$sector][1]) {
-        # trying key b
-        $mpt->mpa(pack("a6C4", $self->{keys}->[$sector][1], @{$self->uid}));
-        return 1 if (nfc_initiator_mifare_cmd($self->{_pdi}, MC_AUTH_B, $tblock, $mpt));
-    }
+    return 1 if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, $keytype, $tblock, $mpt));
     return 0;
 }
 
@@ -189,10 +258,12 @@ sub _parse_acl {
             ]
         }
     );
-    $acl{parsed}->{data1}   = [ $acl{raw}->{c1}->[0], $acl{raw}->{c2}->[0], $acl{raw}->{c3}->[0] ];
-    $acl{parsed}->{data2}   = [ $acl{raw}->{c1}->[1], $acl{raw}->{c2}->[1], $acl{raw}->{c3}->[1] ];
-    $acl{parsed}->{data3}   = [ $acl{raw}->{c1}->[2], $acl{raw}->{c2}->[2], $acl{raw}->{c3}->[2] ];
-    $acl{parsed}->{trailer} = [ $acl{raw}->{c1}->[3], $acl{raw}->{c2}->[3], $acl{raw}->{c3}->[3] ];
+    $acl{parsed} = {
+        data0   => pack("C3", $acl{raw}->{c1}->[0], $acl{raw}->{c2}->[0], $acl{raw}->{c3}->[0]),
+        data1   => pack("C3", $acl{raw}->{c1}->[1], $acl{raw}->{c2}->[1], $acl{raw}->{c3}->[1]),
+        data2   => pack("C3", $acl{raw}->{c1}->[2], $acl{raw}->{c2}->[2], $acl{raw}->{c3}->[2]),
+        trailer => pack("C3", $acl{raw}->{c1}->[3], $acl{raw}->{c2}->[3], $acl{raw}->{c3}->[3])
+    };
 
     return wantarray?%acl:\%acl;
 }
