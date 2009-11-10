@@ -436,7 +436,7 @@ mpa(THIS, __key = NO_INIT, __uid = NO_INIT)
     RETVAL
 
 
-char *
+SV *
 mpd(THIS, __value = NO_INIT)
     mifare_param *THIS
     SV *__value
@@ -453,7 +453,7 @@ mpd(THIS, __value = NO_INIT)
             }
         }
     }
-    RETVAL = (char *)&THIS->mpd;
+    RETVAL = newSVpv((char *)&THIS->mpd, 16);
     OUTPUT:
     RETVAL
 

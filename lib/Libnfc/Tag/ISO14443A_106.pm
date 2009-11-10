@@ -88,6 +88,7 @@ sub readBlock {
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi},MC_READ,$block,$mpt)) {
+        my $j = $mpt->mpd;
         return unpack("a16", $mpt->mpd); 
     }
     return undef;
@@ -111,7 +112,8 @@ sub readSector {
     }
     my $data;
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
-        $data .= $self->readBlock($i);
+        $data = $self->readBlock($i);
+        warn length($data);
     }
     return $data;
 }
