@@ -144,13 +144,36 @@ sub dumpInfo {
 }
 
 sub readBlock {
-    my ($self, $block) = @_;
+    my ($self, $block, $noauth) = @_;
 
+    use integer;
+
+    my $sector;
+    if ($block < 128) {
+        $sector = $block/4;
+    } else {
+        $sector = 32 + ($block - 128)/16;
+    }
+    # try to do authentication only if we have keys loaded
+    if (scalar(@{$self->{_keys}}) >= $sector && !$noauth) { 
+        my $acl = $self->acl($sector);
+        my $step = ($sector < 32)?4:16;
+        my $datanum = "data".($block % $step);
+        if ($acl && $acl->{parsed}->{$datanum}) {
+            unless (@{$data_acl{$acl->{parsed}->{$datanum}}}[0]) {
+                $self->{_last_error} = "ACL denies reads on sector $sector, block $block";
+                return undef;
+            }
+        }
+        $self->unlock($sector, (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
+    }
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi},MC_READ,$block,$mpt)) {
         my $j = $mpt->mpd;
         return unpack("a16", $mpt->mpd); 
+    } else {
+        $self->{_last_error} = "Error reading $sector, block $block"; # XXX - does libnfc provide any clue on the ongoing error?
     }
     return undef;
 }
@@ -174,22 +197,8 @@ sub readSector {
     my $acl = $self->acl($sector);
 
     return unless ($self->unlock($sector));
-    my $keytype = MC_AUTH_A; #defaults to KeyA
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
         my $step = ($sector < 32)?4:16;
-        my $datanum = "data".($i % $step);
-        if ($acl && $acl->{parsed}->{$datanum}) {
-            unless (@{$data_acl{$acl->{parsed}->{$datanum}}}[0]) {
-                $self->{_last_error} = "ACL denies reads on sector $sector, block $i";
-                return undef;
-            }
-            #warn Dumper($acl);
-            my $newkey = (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A;
-            if ($newkey != $keytype) {
-                $keytype = $newkey;
-                $self->unlock($sector, $keytype);
-            }
-        }
         my $newdata = $self->readBlock($i);
         unless (defined $newdata) {
             $self->{_last_error} = "read failed on block $i";
@@ -225,7 +234,7 @@ sub unlock {
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     # trying key a
-    $mpt->mpa($self->{keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
+    $mpt->mpa($self->{_keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
     # TODO - introduce debug-flag and proper debug messages
     #printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $mpt->mpa));
 
@@ -238,7 +247,7 @@ sub acl {
     my $tblock = $self->_trailer_block($sector);
 
     if ($self->unlock($sector)) {
-        my $data = $self->readBlock($tblock);
+        my $data = $self->readBlock($tblock, 1);
         #return unpack("x6a4x6", $data) if ($data);
         return $self->_parse_acl(unpack("x6a4x6", $data)) if ($data);
     }
@@ -285,8 +294,9 @@ sub _trailer_block {
     if ($sector < 32) {
         return (($sector+1) * 4) -1;
     } else {
-        return  127 + ((($sector+1) * 16) -1);
+        return 127 + (($sector - 31) * 16);
     }
+ 
 }
 
 1;

@@ -36,14 +36,14 @@ sub new {
         printf("Card:\t ".(split('::', $types{$type}))[2]." found\n");
     }
 
-    $self->{keys} = [];
+    $self->{_keys} = [];
     return $self;
 
 }
 
 sub setKey {
     my ($self, $sector, $keyA, $keyB) = @_;
-    $self->{keys}->[$sector] = [$keyA, $keyB];
+    $self->{_keys}->[$sector] = [$keyA, $keyB];
 }
 
 sub setKeys {
