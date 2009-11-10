@@ -24,6 +24,7 @@ sub new {
     }
 
     # Try to find the requested tag type
+    $self->{_last_error} = "";
     $self->{_ti} = tag_info->new();
     $self->{_pti} = $self->{_ti}->_to_ptr;
     $self->{reader} = $reader;
@@ -83,6 +84,11 @@ sub dumpKeys {
 sub dumpInfo {
     my $self = shift;
     warn "[",ref($self)."] Libnfc::Tag::dumpInfo() - OVERRIDE ME";
+}
+
+sub error {
+    my $self = shift;
+    return $self->{_last_error};
 }
 
 1;
