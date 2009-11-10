@@ -17,9 +17,9 @@ use Libnfc::CONSTANTS ':all';
 #   
 # for instance: 
 #
-#   pack("CCC", 0, 1, 1) => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
+#   3 => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
 #
-#   means that when C1C2C3 is equal to 011 we can :
+#   means that when C1C2C3 is equal to 011 (3) and so we can :
 #      - NEVER read keyA
 #      - write keyA using KeyB
 #      - read ACL with any key (either KeyA or KeyB)
@@ -27,14 +27,14 @@ use Libnfc::CONSTANTS ':all';
 #      - NEVER read KeyB
 #      - write KeyB using KeyB
 my %trailer_acl = (
-    pack("b", "000") => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 1 ] },
-    pack("b", "010") => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 0 ] },
-    pack("b", "100") => { A => [ 0, 2 ], ACL => [ 3, 0 ], B => [ 0, 2 ] },
-    pack("b", "110") => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] },
-    pack("b", "001") => { A => [ 0, 1 ], ACL => [ 1, 1 ], B => [ 1, 1 ] },
-    pack("b", "011") => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
-    pack("b", "101") => { A => [ 0, 0 ], ACL => [ 3, 2 ], B => [ 0, 0 ] },
-    pack("b", "111") => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] }
+    0 => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 1 ] },
+    1 => { A => [ 0, 1 ], ACL => [ 1, 1 ], B => [ 1, 1 ] },
+    2 => { A => [ 0, 1 ], ACL => [ 1, 0 ], B => [ 1, 0 ] },
+    4 => { A => [ 0, 2 ], ACL => [ 3, 0 ], B => [ 0, 2 ] },
+    3 => { A => [ 0, 2 ], ACL => [ 3, 2 ], B => [ 0, 2 ] },
+    5 => { A => [ 0, 0 ], ACL => [ 3, 2 ], B => [ 0, 0 ] },
+    6 => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] },
+    7 => { A => [ 0, 0 ], ACL => [ 3, 0 ], B => [ 0, 0 ] }
 );
 
 # Internal representation of TABLE 4 (M001053_MF1ICS50_rev5_3.pdf)
@@ -48,23 +48,23 @@ my %trailer_acl = (
 #
 # for instance: 
 #
-#   pack("CCC", 1, 0, 0) => [ 3, 2, 0, 0 ],
+#   4 => [ 3, 2, 0, 0 ],
 #   
-#   means that when C1C2C3 is equal to 100 we can :
+#   means that when C1C2C3 is equal to 100 (4) and so we can :
 #       - read the block using any key (either KeyA or KeyB)
 #       - write the block using KeyB
 #       - never increment the block
 #       - never decrement/restore the block
 #
 my %data_acl = (
-    pack("b", "000") => [ 3, 3, 3, 3 ],
-    pack("b", "010") => [ 3, 0, 0, 0 ],
-    pack("b", "100") => [ 3, 2, 0, 0 ],
-    pack("b", "110") => [ 3, 2, 2, 3 ],
-    pack("b", "001") => [ 3, 0, 0, 3 ],
-    pack("b", "011") => [ 2, 2, 0, 0 ],
-    pack("b", "101") => [ 2, 0, 0, 0 ],
-    pack("b", "111") => [ 0, 0, 0, 0 ],
+    0 => [ 3, 3, 3, 3 ],
+    1 => [ 3, 0, 0, 3 ],
+    2 => [ 3, 0, 0, 0 ],
+    3 => [ 2, 2, 0, 0 ],
+    4 => [ 3, 2, 0, 0 ],
+    5 => [ 2, 0, 0, 0 ],
+    6 => [ 3, 2, 2, 3 ],
+    7 => [ 0, 0, 0, 0 ]
 );
 
 sub type {
@@ -175,16 +175,20 @@ sub readSector {
 
     return unless ($self->unlock($sector));
     my $keytype = MC_AUTH_A; #defaults to KeyA
+                use Data::Dumper;
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
         my $datanum = "data".($i%4);
         if ($acl && $acl->{parsed}->{$datanum}) {
+            #warn Dumper($acl);
             my $newkey = (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A;
             if ($newkey != $keytype) {
                 $keytype = $newkey;
-                $self->unlock_sector($sector, $keytype);
+                $self->unlock($sector, $keytype);
             }
         }
-        $data .= $self->readBlock($i);
+        my $newdata = $self->readBlock($i);
+        return undef unless defined $newdata;
+        $data .= $newdata;
     }
     return $data;
 }
@@ -259,10 +263,10 @@ sub _parse_acl {
         }
     );
     $acl{parsed} = {
-        data0   => pack("b", "$acl{raw}->{c1}->[0]$acl{raw}->{c2}->[0]$acl{raw}->{c3}->[0]"),
-        data1   => pack("b", "$acl{raw}->{c1}->[1]$acl{raw}->{c2}->[1]$acl{raw}->{c3}->[1]"),
-        data2   => pack("b", "$acl{raw}->{c1}->[2]$acl{raw}->{c2}->[2]$acl{raw}->{c3}->[2]"),
-        trailer => pack("b", "$acl{raw}->{c1}->[3]$acl{raw}->{c2}->[3]$acl{raw}->{c3}->[3]")
+        data0   => $acl{raw}->{c1}->[0] | ($acl{raw}->{c2}->[0] << 1) | ($acl{raw}->{c3}->[0] << 2),
+        data1   => $acl{raw}->{c1}->[1] | ($acl{raw}->{c2}->[1] << 1) | ($acl{raw}->{c3}->[1] << 2),
+        data2   => $acl{raw}->{c1}->[2] | ($acl{raw}->{c2}->[2] << 1) | ($acl{raw}->{c3}->[2] << 2),
+        trailer => $acl{raw}->{c1}->[3] | ($acl{raw}->{c2}->[3] << 1) | ($acl{raw}->{c3}->[3] << 2)
     };
 
     return wantarray?%acl:\%acl;

@@ -52,7 +52,7 @@ sub setKeys {
         if (ref($key) and ref($key) eq "ARRAY") {
             $self->setKey($cnt++, @$key[0], @$key[1]);
         } else {
-            $self->setKey($cnt++, $key, undef);
+            $self->setKey($cnt++, $key, $key);
         }
     }
 }
