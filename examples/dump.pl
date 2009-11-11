@@ -18,7 +18,7 @@ my @keys = (
 
 my $DEBUG = 1;
 
-my $r = Libnfc::Reader->new();
+my $r = Libnfc::Reader->new(debug => 1);
 
 if ($r->init()) {
     printf ("Reader: %s\n", $r->name);
@@ -35,8 +35,11 @@ if ($r->init()) {
     $tag->setKeys(@keys);
 
     for (my $i = 0; $i < $tag->blocks; $i++) {
-        my $data = $tag->readBlock($i);
-        printf("%3d : ". "%02x " x length($data) . "\n", 
-            $i, unpack("C".length($data), $data));
+        if (my $data = $tag->readBlock($i)) {
+            printf("%3d : ". "%02x " x length($data) . "\n", 
+                $i, unpack("C".length($data), $data));
+        } else {
+            warn $tag->error;
+        }
     }
 }
