@@ -16,6 +16,7 @@ sub new {
     return unless ($reader and UNIVERSAL::isa($reader, "Libnfc::Reader"));
 
     my $self = {};
+    $self->{debug} = $reader->{debug};
     # Try to find the requested tag type
     $self->{_last_error} = "";
     $self->{_ti} = tag_info->new();
@@ -23,10 +24,10 @@ sub new {
     $self->{reader} = $reader;
     if (!nfc_initiator_select_tag($reader->{_pdi}, $type, 0, 0, $self->{_pti}))
     {
-        printf("Error: no tag was found\n");
+        warn("Error: no tag was found\n");
         return undef;
     } else {
-        printf("Card:\t ".(split('::', $types{$type}))[2]." found\n");
+        print "Card:\t ".(split('::', $types{$type}))[2]." found\n" if $self->{debug};
     }
 
     if ($types{$type} && eval "require $types{$type};") {

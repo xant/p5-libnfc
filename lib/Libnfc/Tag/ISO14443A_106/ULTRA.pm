@@ -8,7 +8,13 @@ use Libnfc::CONSTANTS ':all';
 
 sub readBlock {
     my ($self, $block, $noauth) = @_;
-    warn "TODO - ImplementMe";
+    my $mp = mifare_param->new();
+    my $mpt = $mp->_to_ptr;
+    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, 0x30, $block, $mpt)) {
+        return unpack("a16", $mpt->mpd); 
+    } else {
+    #warn "NOT OK";
+    }
     return undef;
 }
 
@@ -39,5 +45,16 @@ sub write {
     my $self = shift;
     return $self->writeSector(@_);
 }
+
+# number of blocks on the tag
+sub blocks {
+    return 16;
+}
+
+# number of sectors on the tag
+sub sectors {
+    return 16;
+}
+
 
 1;

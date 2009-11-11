@@ -16,4 +16,4 @@ lib/Libnfc/Tag/ISO14443A_106/4K.pm
 lib/Libnfc/Tag/ISO14443A_106/ULTRA.pm
 lib/Libnfc/Tag.pm
 lib/Libnfc.pm
-
+examples/dump.pl

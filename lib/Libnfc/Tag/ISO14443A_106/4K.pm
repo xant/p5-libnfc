@@ -93,12 +93,12 @@ sub readBlock {
 
     # try to do authentication only if we have required keys loaded
     if (scalar(@{$self->{_keys}}) >= $sector && !$noauth) { 
-        $self->unlock($sector, (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
+        return undef unless 
+            $self->unlock($sector, (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_READ, $block, $mpt)) {
-        my $j = $mpt->mpd;
         return unpack("a16", $mpt->mpd); 
     } else {
         $self->{_last_error} = "Error reading $sector, block $block"; # XXX - does libnfc provide any clue on the ongoing error?
@@ -167,6 +167,9 @@ sub unlock {
     #printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $mpt->mpa));
 
     return 1 if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, $keytype, $tblock, $mpt));
+    $self->{_last_error} = "Failed to authenticate on sector $sector (tblock:$tblock) with key ".
+        sprintf("%x %x %x %x %x %x\n", unpack("C6", $mpt->mpa));
+        
     return 0;
 }
 
@@ -230,6 +233,16 @@ sub _trailer_block {
     } else {
         return 127 + (($sector - 31) * 16);
     }
+}
+
+# number of blocks in the tag
+sub blocks {
+    return 256;
+}
+
+# number of sectors in the tag
+sub sectors {
+    return 40;
 }
 
 1;

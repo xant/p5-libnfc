@@ -10,8 +10,8 @@ use Libnfc::Tag;
 use Libnfc::CONSTANTS ':all';
 
 sub new {
-    my ($class) = shift;
-    my $self = bless {}, $class;
+    my ($class, %args) = @_;
+    my $self = bless {%args}, $class;
     $self->{_pdi} = nfc_connect();
     croak "No device" unless $self->{_pdi};
     return $self;
