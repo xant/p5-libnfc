@@ -16,13 +16,6 @@ sub new {
     return unless ($reader and UNIVERSAL::isa($reader, "Libnfc::Reader"));
 
     my $self = {};
-    if ($types{$type} && eval "require $types{$type};") {
-        bless $self, $types{$type};
-    } else {
-        warn "Unknown tag type $type";
-        return undef;
-    }
-
     # Try to find the requested tag type
     $self->{_last_error} = "";
     $self->{_ti} = tag_info->new();
@@ -34,6 +27,19 @@ sub new {
         return undef;
     } else {
         printf("Card:\t ".(split('::', $types{$type}))[2]." found\n");
+    }
+
+    if ($types{$type} && eval "require $types{$type};") {
+        my $productType = $types{$type}->type($self->{_pti});
+        if ($productType && eval "require $types{$type}::$productType;") {
+            bless $self, "$types{$type}::$productType";
+        } else {
+            warn "Unsupported product type $productType";
+            return undef;
+        }
+    } else {
+        warn "Unknown tag type $type";
+        return undef;
     }
 
     $self->{_keys} = [];
