@@ -74,19 +74,19 @@ sub ats {
 sub dumpInfo {
     my $self = shift;
     if ($self->uid) {
-        printf ("Uid:\t". "%x " x scalar(@{$self->uid}). "\n", @{$self->uid});
+        printf ("Uid:\t". "%02x " x scalar(@{$self->uid}). "\n", @{$self->uid});
     } else {
         printf ("Uid:\tunknown\n");
     }
     printf ("Type:\t%s\n", $self->type || "unknown");
     if ($self->atqa && scalar(@{$self->atqa})) {
-        printf ("Atqa:\t%x %x\n", @{$self->atqa});
+        printf ("Atqa:\t%02x %02x\n", @{$self->atqa});
     } else {
         printf ("Atqa:\tunknown\n");
     }
-    printf ("BtSak:\t%x\n", $self->btSak);
+    printf ("BtSak:\t%02x\n", $self->btSak);
     if ($self->ats) {
-        printf ("Ats:\t". "%x " x scalar(@{$self->ats}) ."\n", @{$self->ats});
+        printf ("Ats:\t". "%02x " x scalar(@{$self->ats}) ."\n", @{$self->ats});
     }
 }
 

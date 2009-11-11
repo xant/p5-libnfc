@@ -16,8 +16,6 @@ my @keys = (
 );
 
 
-my $DEBUG = 1;
-
 my $r = Libnfc::Reader->new(debug => 1);
 
 if ($r->init()) {
@@ -25,7 +23,7 @@ if ($r->init()) {
 
     my $tag = $r->connectTag(IM_ISO14443A_106);
 
-    if ($tag && $DEBUG) {
+    if ($tag && $r->{debug}) {
         $tag->dumpInfo
     } else {
         warn "No TAG";
