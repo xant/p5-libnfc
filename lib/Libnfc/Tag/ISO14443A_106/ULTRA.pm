@@ -11,10 +11,16 @@ sub readBlock {
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
     if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, 0x30, $block, $mpt)) {
-        return unpack("a16", $mpt->mpd); 
-    } else {
-    #warn "NOT OK";
-    }
+        # if we are reading page 15 we must return only 4 bytes, 
+        # since following 12 bytes will come from page 0 
+        # (according to the the "roll back" property described in chapter 6.6.4 on 
+        # the spec document : M028634_MF0ICU1_Functional_Spec_V3.4.pdf
+        if ($block == $self->blocks-1) { 
+            return unpack("a4", $mpt->mpd); 
+        } else {
+            return unpack("a16", $mpt->mpd); 
+        }
+    } 
     return undef;
 }
 
