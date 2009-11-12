@@ -97,13 +97,28 @@ nfc_initiator_transceive_bits(pdi, pbtTx, uiTxBits, pbtTxPar, pbtRx, puiRxBits, 
 	uint32_t *	puiRxBits
 	byte_t *	pbtRxPar
 
-_Bool
-nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen, pbtRx, puiRxLen)
+SV *
+nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen)
 	dev_info *	pdi
 	byte_t *	pbtTx
 	uint32_t	uiTxLen
-	byte_t *	pbtRx
-	uint32_t *	puiRxLen
+    PREINIT:
+        int             rc;            
+        uint32_t        len;
+	byte_t *	pbtRx;
+	uint32_t 	puiRxLen;
+        char            *rbuf;
+        SV              *sv;
+    CODE:
+        rbuf = malloc(MAX_FRAME_LEN);
+        rc = nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen,  rbuf, &puiRxLen);
+        if (rc)
+            sv = newSVpv(rbuf, puiRxLen);
+        else
+            sv = newSV(0);
+        free(rbuf);
+        RETVAL = sv;
+
 
 _Bool
 nfc_target_init(pdi, pbtRx, puiRxBits)
@@ -118,11 +133,25 @@ nfc_target_receive_bits(pdi, pbtRx, puiRxBits, pbtRxPar)
 	uint32_t *	puiRxBits
 	byte_t *	pbtRxPar
 
-_Bool
-nfc_target_receive_bytes(pdi, pbtRx, puiRxLen)
+SV *
+nfc_target_receive_bytes(pdi, pbtRx)
 	dev_info *	pdi
 	byte_t *	pbtRx
-	uint32_t *	puiRxLen
+    PREINIT:
+        _Bool           rc;            
+        uint32_t        len;
+	uint32_t *	puiRxLen;
+        char            *rbuf;
+        SV              *sv;
+    CODE:
+        rbuf = malloc(MAX_FRAME_LEN);
+        rc = nfc_target_receive_bytes(pdi, rbuf, &puiRxLen);
+        if (rc)
+            sv = newSVpv(rbuf, puiRxLen);
+        else
+            sv = newSV(0);
+        free(rbuf);
+        RETVAL = sv;
 
 _Bool
 nfc_target_send_bits(pdi, pbtTx, uiTxBits, pbtTxPar)
@@ -417,7 +446,8 @@ mpa(THIS, __key = NO_INIT, __uid = NO_INIT)
         if (SvPOK(__key)) {
             len = SvCUR(__key);
             if (len == 6) {
-                memcpy(&THIS->mpa.abtKey, SvPV(__key, len), len);
+                char *k = SvPV(__key, len);
+                memcpy(&THIS->mpa.abtKey, k, len);
             } else {
                 croak("Size %d of packed data != expected 6 for __key", len);
             }
@@ -425,7 +455,8 @@ mpa(THIS, __key = NO_INIT, __uid = NO_INIT)
         if (SvPOK(__uid)) {
             len = SvCUR(__uid);
             if (len == 4) {
-                memcpy(&THIS->mpa.abtUid, SvPV(__uid, len), len);
+                char *u = SvPV(__uid, len);
+                memcpy(&THIS->mpa.abtUid, u, len);
             } else {
                 croak("Size %d of packed data != expected 4 for __uid", len);
             }
@@ -447,7 +478,8 @@ mpd(THIS, __value = NO_INIT)
         if (SvPOK(__value)) {
             len = SvCUR(__value);
             if (len <= 16) {
-                memcpy(&THIS->mpd.abtData, SvPV(__value, len), len);
+                char *v = SvPV(__value, len);
+                memcpy(&THIS->mpd.abtData, v, len);
             } else {
                 croak("Size %d of packed data != expected 6 for __value", len);
             }
