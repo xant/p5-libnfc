@@ -90,4 +90,20 @@ sub dumpInfo {
     }
 }
 
+# XXX - doesn't work
+sub crc {
+    my ($self, $data) = @_;
+    my $bt;
+    my $ofx = 0;
+    my $len = length($data);
+    my $wCrc = pack("L", 0x6363);
+    while ($ofx < $len) {
+        $bt = unpack("x${ofx}C", $data);
+        $bt = ($bt^($wCrc & 0x00ff));
+        $bt = ($bt^($bt <<4 ));
+        $wCrc = ($wCrc >> 8)^($bt << 8)^($bt << 3)^($bt >> 4);
+        $ofx++;
+    }
+    return $wCrc;
+}
 1;

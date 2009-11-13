@@ -31,6 +31,16 @@ BEGIN {    # must be defined at compile time
                 MC_DECREMENT      => 0xC0,
                 MC_INCREMENT      => 0xC1,
                 MC_STORE          => 0xC2
+            },
+            MU => {
+                MU_REQA           => 0x26,
+                MU_WUPA           => 0x52,
+                MU_SELECT1           => 0x93,
+                MU_SELECT2           => 0x95,
+                MU_READ           => 0x30,
+                MU_WRITE          => 0xA2,
+                MU_CWRITE         => 0xA0,
+                MU_HALT           => 0x50
             }
         );
 }
