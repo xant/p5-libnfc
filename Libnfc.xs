@@ -88,14 +88,29 @@ nfc_initiator_select_tag(pdi, im, pbtInitData, uiInitDataLen, pti)
 	tag_info *	pti
 
 _Bool
-nfc_initiator_transceive_bits(pdi, pbtTx, uiTxBits, pbtTxPar, pbtRx, puiRxBits, pbtRxPar)
+nfc_initiator_transceive_bits(pdi, pbtTx, uiTxBits)
 	dev_info *	pdi
 	byte_t *	pbtTx
 	uint32_t	uiTxBits
-	byte_t *	pbtTxPar
-	byte_t *	pbtRx
-	uint32_t *	puiRxBits
-	byte_t *	pbtRxPar
+    PREINIT:
+        int             rc;            
+        uint32_t        len;
+	byte_t *	pbtRx;
+	uint32_t 	puiRxBits = 0;
+        byte_t          *rbuf;
+        SV              *sv = &PL_sv_undef;
+    CODE:
+        rbuf = malloc(MAX_FRAME_LEN);
+        // TODO - handle parity
+        if (nfc_initiator_transceive_bits(pdi, pbtTx, uiTxBits,  NULL, rbuf, &puiRxBits, NULL))  {
+            sv = newSVpv((char *)rbuf, puiRxBits/8);
+        }
+        free(rbuf);
+        RETVAL = sv;
+    OUTPUT:
+        RETVAL
+
+
 
 SV *
 nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen)
@@ -106,18 +121,18 @@ nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen)
         int             rc;            
         uint32_t        len;
 	byte_t *	pbtRx;
-	uint32_t 	puiRxLen;
-        char            *rbuf;
-        SV              *sv;
+	uint32_t 	puiRxLen = 0;
+        byte_t          *rbuf;
+        SV              *sv = &PL_sv_undef;
     CODE:
         rbuf = malloc(MAX_FRAME_LEN);
-        rc = nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen,  rbuf, &puiRxLen);
-        if (rc)
-            sv = newSVpv(rbuf, puiRxLen);
-        else
-            sv = newSV(0);
+        if (nfc_initiator_transceive_bytes(pdi, pbtTx, uiTxLen,  rbuf, &puiRxLen))  {
+            sv = newSVpv((char *)rbuf, puiRxLen);
+        }
         free(rbuf);
         RETVAL = sv;
+    OUTPUT:
+        RETVAL
 
 
 _Bool
@@ -140,18 +155,20 @@ nfc_target_receive_bytes(pdi, pbtRx)
     PREINIT:
         _Bool           rc;            
         uint32_t        len;
-	uint32_t *	puiRxLen;
-        char            *rbuf;
+	uint32_t 	puiRxLen;
+        byte_t          *rbuf;
         SV              *sv;
     CODE:
         rbuf = malloc(MAX_FRAME_LEN);
         rc = nfc_target_receive_bytes(pdi, rbuf, &puiRxLen);
         if (rc)
-            sv = newSVpv(rbuf, puiRxLen);
+            sv = newSVpv((char *)rbuf, puiRxLen);
         else
             sv = newSV(0);
         free(rbuf);
         RETVAL = sv;
+    OUTPUT:
+        RETVAL
 
 _Bool
 nfc_target_send_bits(pdi, pbtTx, uiTxBits, pbtTxPar)
