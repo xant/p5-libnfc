@@ -10,7 +10,6 @@ my $r = Libnfc::Reader->new();
 if ($r->init()) {
     printf ("Reader: %s\n", $r->name);
     my $tag = $r->connect(IM_ISO14443A_106);
-
     if ($tag and $DEBUG) {
         $tag->dump_info;
     } else {

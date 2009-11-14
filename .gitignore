@@ -1,0 +1,14 @@
+*.la
+*.lo
+*~
+*.orig
+Makefile.old
+Makefile
+*.*.swp
+core
+core.*
+blib/
+pm_to_blib
+Libnfc.c
+Libnfc.o
+Libnfc.bs
