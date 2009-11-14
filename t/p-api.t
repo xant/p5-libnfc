@@ -20,17 +20,17 @@ my $r = Libnfc::Reader->new();
 if (ok ($r->init())) {
     printf ("Reader: %s\n", $r->name);
 
-    my $tag = $r->connectTag(IM_ISO14443A_106);
+    my $tag = $r->connect(IM_ISO14443A_106);
 
     if (ok $tag) {
-        $tag->dumpInfo;
+        $tag->dump_info;
 
         my @keys = (
             pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
             pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
         );
 
-        $tag->setKeys(@keys);
+        $tag->set_keys(@keys);
 
         # todo complete testunit
     }

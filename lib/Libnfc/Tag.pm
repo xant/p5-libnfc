@@ -48,30 +48,20 @@ sub new {
 
 }
 
-sub setKey {
+sub set_key {
     my ($self, $sector, $keyA, $keyB) = @_;
     $self->{_keys}->[$sector] = [$keyA, $keyB];
 }
 
-sub setKeys {
+sub set_keys {
     my ($self, @keys) = @_;
     my $cnt = 0;
     foreach my $key (@keys) {
         if (ref($key) and ref($key) eq "ARRAY") {
-            $self->setKey($cnt++, @$key[0], @$key[1]);
+            $self->set_key($cnt++, @$key[0], @$key[1]);
         } else {
-            $self->setKey($cnt++, $key, $key);
+            $self->set_key($cnt++, $key, $key);
         }
-    }
-}
-
-sub blockSector {
-    my ($self, $block) = @_;
-    if ($block < 128) {
-        return $block/4;
-    } else {
-        $block -= 128;
-        return 31 + $block/16;
     }
 }
 
@@ -85,10 +75,10 @@ sub write {
     warn "[",ref($self)."] Libnfc::Tag::write() - OVERRIDE ME";
 }
 
-sub dumpKeys {
+sub dump_keys {
 }
 
-sub dumpInfo {
+sub dump_info {
     my $self = shift;
     warn "[",ref($self)."] Libnfc::Tag::dumpInfo() - OVERRIDE ME";
 }

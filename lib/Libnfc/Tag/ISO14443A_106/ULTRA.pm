@@ -3,21 +3,23 @@ package Libnfc::Tag::ISO14443A_106::ULTRA;
 use strict;
 
 use base qw(Libnfc::Tag::ISO14443A_106);
-use Libnfc qw(nfc_configure nfc_initiator_mifare_cmd nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc);
+use Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc print_hex);
 use Libnfc::CONSTANTS ':all';
 
-sub readBlock {
-    my ($self, $block, $noauth) = @_;
-    my $mp = mifare_param->new();
-    my $mpt = $mp->_to_ptr;
+sub read_block {
+    my ($self, $block, $noauth, $full) = @_;
     my $cmd = pack("C4", MU_READ, $block); # ANTICOLLISION of cascade level 1
     append_iso14443a_crc($cmd, 2);
     if (my $resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 4)) {
+        if ($self->{debug}) {
+            printf("R: ");
+            print_hex($resp, length($resp));
+        }
         # if we are reading page 15 we must return only 4 bytes, 
         # since following 12 bytes will come from page 0 
         # (according to the the "roll back" property described in chapter 6.6.4 on 
         # the spec document : M028634_MF0ICU1_Functional_Spec_V3.4.pdf
-        if ($block == $self->blocks-1) { 
+        if ($block == $self->blocks-1 or !$full) { 
             return unpack("a4", $resp); 
         } else {
             return unpack("a16", $resp); 
@@ -28,7 +30,7 @@ sub readBlock {
     return undef;
 }
 
-sub writeBlock {
+sub write_block {
     my ($self, $block, $data) = @_;
 
     return undef unless $data;
@@ -39,10 +41,18 @@ sub writeBlock {
             $self->{_last_error} = "Lockbits deny writes on block $block";
             return undef;
         }
-        my $mp = mifare_param->new();
-        my $mpt = $mp->_to_ptr;
-        my $cmd = length($data) == 4 ? MU_WRITE : MU_CWRITE;
-        if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, $cmd, $block, $mpt)) {
+
+        my $len = (length($data) <= 4) ? 4 : 16;
+        my $cmdtag = ($len == 4)?MU_WRITE:MU_CWRITE;
+        my $prefix = pack("C2", $cmdtag, $block);
+        my $postfix = pack("C2", 0, 0);
+        my $cmd = $prefix.$data.$postfix;
+        append_iso14443a_crc($cmd, $len+2);
+        if (my $resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, $len+4)) {
+            if ($self->{debug}) {
+                printf("W: ");
+                print_hex($data, length($data));
+            }
             return 1;
         } else {
             $self->{_last_error} = "Error trying to write on block $block";
@@ -53,24 +63,24 @@ sub writeBlock {
     return undef;
 }
 
-sub readSector {
+sub read_sector {
     my $self = shift;
-    return $self->readBlock(@_);
+    return $self->read_block(@_);
 }
 
-sub writeSector {
+sub write_sector {
     my $self = shift;
-    $self->writeBlock(@_);
+    $self->write_block(@_);
 }
 
 sub read {
     my $self = shift;
-    return $self->readSector(@_);
+    return $self->read_sector(@_);
 }
 
 sub write {
     my $self = shift;
-    return $self->writeSector(@_);
+    return $self->write_sector(@_);
 }
 
 # number of blocks on the tag
@@ -85,13 +95,15 @@ sub sectors {
 
 sub acl {
     my $self = shift;
-    my $data = $self->readBlock(2);
+    my $data = $self->read_block(2);
     if ($data) {
         return $self->_parse_locking_bits(unpack("x2a2", $data));
     }
+    $self->{_last_error} = "Can't read ACL from sector 2";
     return undef;
 }
 
+# locking-bits parsing as defined on M028634_MF0ICU1_Functional_Spec_V3.4.pdf 
 sub _parse_locking_bits {
     my ($self, $lockbytes) = @_;
     my ($b1, $b2) = unpack("CC", $lockbytes);
@@ -117,8 +129,10 @@ sub _parse_locking_bits {
             15 => ($b2 >> 7) & 1
         }
     );
+    return \%acl;
 }
 
+# anticollision/selection as defined on M028634_MF0ICU1_Functional_Spec_V3.4.pdf 
 sub select {
     my $self = shift;
 
@@ -156,7 +170,7 @@ sub select {
                             append_iso14443a_crc($cmd, 7);
                             if ($resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 9)) {
                                 if ($uid == $cuid) {
-                                    warn "OK"
+                                    return 1;
                                 } else {
                                     # HALT the unwanted tag
                                     $cmd = pack("C2", MU_HALT, 0x00);

@@ -68,7 +68,7 @@ my %data_acl = (            # read, write, increment, decrement/restore/transfer
     7 => [ 0, 0, 0, 0 ]     #  never never    never      never
 );
 
-sub readBlock {
+sub read_block {
     my ($self, $block, $noauth) = @_;
 
     use integer; # force integer arithmetic to round divisions
@@ -85,7 +85,7 @@ sub readBlock {
     my $step = ($sector < 32)?4:16;
     my $datanum = "data".($block % $step);
     if ($acl && $acl->{parsed}->{$datanum}) {
-        unless (@{$data_acl{$acl->{parsed}->{$datanum}}}[0]) {
+        unless (@{$acl->{parsed}->{$datanum}}[0]) {
             $self->{_last_error} = "ACL denies reads on sector $sector, block $block";
             return undef;
         }
@@ -94,7 +94,7 @@ sub readBlock {
     # try to do authentication only if we have required keys loaded
     if (scalar(@{$self->{_keys}}) >= $sector && !$noauth) { 
         return undef unless 
-            $self->unlock($sector, (@{$data_acl{$acl->{parsed}->{$datanum}}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
+            $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
@@ -110,7 +110,7 @@ sub writeBlock {
     my ($self, $block) = @_;
 }
 
-sub readSector {
+sub read_sector {
     my ($self, $sector) = @_;
     my $tblock;
     my $nblocks;
@@ -127,7 +127,7 @@ sub readSector {
     return unless ($self->unlock($sector));
     for (my $i = $tblock+1-$nblocks; $i < $tblock; $i++) {
         my $step = ($sector < 32)?4:16;
-        my $newdata = $self->readBlock($i);
+        my $newdata = $self->read_block($i);
         unless (defined $newdata) {
             $self->{_last_error} = "read failed on block $i";
             return undef;
@@ -137,18 +137,18 @@ sub readSector {
     return $data;
 }
 
-sub writeSector {
+sub write_sector {
     my ($self, $sector, $data) = @_;
 }
 
 sub read {
     my $self = shift;
-    return $self->readSector(@_);
+    return $self->read_sector(@_);
 }
 
 sub write {
     my $self = shift;
-    return $self->writeSector(@_);
+    return $self->write_sector(@_);
 }
 
 sub unlock {
@@ -216,10 +216,10 @@ sub _parse_acl {
         }
     );
     $acl{parsed} = {
-        data0   => $acl{bits}->{c1}->[0] | ($acl{bits}->{c2}->[0] << 1) | ($acl{bits}->{c3}->[0] << 2),
-        data1   => $acl{bits}->{c1}->[1] | ($acl{bits}->{c2}->[1] << 1) | ($acl{bits}->{c3}->[1] << 2),
-        data2   => $acl{bits}->{c1}->[2] | ($acl{bits}->{c2}->[2] << 1) | ($acl{bits}->{c3}->[2] << 2),
-        trailer => $acl{bits}->{c1}->[3] | ($acl{bits}->{c2}->[3] << 1) | ($acl{bits}->{c3}->[3] << 2)
+        data0   =>    $data_acl{$acl{bits}->{c1}->[0] | ($acl{bits}->{c2}->[0] << 1) | ($acl{bits}->{c3}->[0] << 2)},
+        data1   =>    $data_acl{$acl{bits}->{c1}->[1] | ($acl{bits}->{c2}->[1] << 1) | ($acl{bits}->{c3}->[1] << 2)},
+        data2   =>    $data_acl{$acl{bits}->{c1}->[2] | ($acl{bits}->{c2}->[2] << 1) | ($acl{bits}->{c3}->[2] << 2)},
+        trailer => $trailer_acl{$acl{bits}->{c1}->[3] | ($acl{bits}->{c2}->[3] << 1) | ($acl{bits}->{c3}->[3] << 2)}
     };
 
     return wantarray?%acl:\%acl;

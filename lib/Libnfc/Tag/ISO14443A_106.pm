@@ -3,7 +3,6 @@ package Libnfc::Tag::ISO14443A_106;
 use strict;
 
 use base qw(Libnfc::Tag);
-use Libnfc qw(nfc_initiator_select_tag nfc_initiator_mifare_cmd);
 use Libnfc::CONSTANTS ':all';
 
 sub type {
@@ -52,12 +51,12 @@ sub uid {
     return $self->{_uid};
 }
 
-sub btSak {
+sub btsak {
     my $self = shift;
-    unless ($self->{_btSak}) {
-        $self->{_btSak} = $self->{_pti}->btSak;
+    unless ($self->{_btsak}) {
+        $self->{_btsak} = $self->{_pti}->btSak;
     }
-    return $self->{_btSak};
+    return $self->{_btsak};
 }
 
 sub ats {
@@ -71,7 +70,7 @@ sub ats {
     return $self->{_ats};
 }
 
-sub dumpInfo {
+sub dump_info {
     my $self = shift;
     if ($self->uid) {
         printf ("Uid:\t". "%02x " x scalar(@{$self->uid}). "\n", @{$self->uid});
@@ -84,7 +83,7 @@ sub dumpInfo {
     } else {
         printf ("Atqa:\tunknown\n");
     }
-    printf ("BtSak:\t%02x\n", $self->btSak);
+    printf ("BtSak:\t%02x\n", $self->btsak);
     if ($self->ats) {
         printf ("Ats:\t". "%02x " x scalar(@{$self->ats}) ."\n", @{$self->ats});
     }
@@ -106,4 +105,9 @@ sub crc {
     }
     return $wCrc;
 }
+
+sub select {
+    return 1;
+}
+
 1;

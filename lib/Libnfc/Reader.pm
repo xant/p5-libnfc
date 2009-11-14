@@ -40,9 +40,14 @@ sub name {
     return $self->{_name};
 }
 
-sub connectTag {
+sub connect {
     my ($self, $type) = @_;
     return Libnfc::Tag->new($self, $type);
+}
+
+sub print_hex {
+    my ($self, $data) = @_;
+    print_hex($data, length($data));
 }
 
 sub DESTROY {
