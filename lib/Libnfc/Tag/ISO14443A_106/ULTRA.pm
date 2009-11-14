@@ -46,11 +46,13 @@ sub write_block {
             return undef;
         }
 
-        my $len = (length($data) <= 4) ? 4 : 16;
-        my $cmdtag = ($len == 4)?MU_WRITE:MU_CWRITE;
+        #my $len = (length($data) <= 4) ? 4 : 16;
+        #my $cmdtag = ($len == 4)?MU_WRITE:MU_CWRITE;
+        my $len = 4;
+        my $cmdtag = MU_WRITE; # XXX use only standard WRITE command for now
         my $prefix = pack("C2", $cmdtag, $block);
         my $postfix = pack("C2", 0, 0);
-        my $cmd = $prefix.$data.$postfix;
+        my $cmd = $prefix.pack("a".$len, $data).$postfix;
         append_iso14443a_crc($cmd, $len+2);
         if (my $resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, $len+4)) {
             if ($self->{debug}) {
