@@ -7,19 +7,23 @@ use Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transce
 use Libnfc::CONSTANTS ':all';
 
 sub read_block {
-    my ($self, $block, $noauth, $full) = @_;
+    my ($self, $block, $noauth, $truncate) = @_;
     my $cmd = pack("C4", MU_READ, $block); # ANTICOLLISION of cascade level 1
     append_iso14443a_crc($cmd, 2);
     if (my $resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 4)) {
         if ($self->{debug}) {
             printf("R: ");
-            print_hex($resp, length($resp));
+            # don't dump out parity bytes, which will be dropped later
+            # when returning the buffer back to the caller
+            print_hex($resp, length($resp) -2); 
         }
         # if we are reading page 15 we must return only 4 bytes, 
         # since following 12 bytes will come from page 0 
         # (according to the the "roll back" property described in chapter 6.6.4 on 
         # the spec document : M028634_MF0ICU1_Functional_Spec_V3.4.pdf
-        if ($block == $self->blocks-1 or !$full) { 
+        if ($block == $self->blocks-1 or $truncate) { 
+            # if $truncate is true, we will return back the exact block
+            # (which on ultralight tokens is 4 bytes, even if read returns always 16 bytes).
             return unpack("a4", $resp); 
         } else {
             return unpack("a16", $resp); 
@@ -136,8 +140,6 @@ sub _parse_locking_bits {
 sub select {
     my $self = shift;
 
-    my $mp = mifare_param->new();
-    my $mpt = $mp->_to_ptr;
     my $uid = pack("C6", @{$self->uid});
     nfc_configure($self->{reader}->{_pdi}, DCO_ACTIVATE_FIELD, 0);
 
