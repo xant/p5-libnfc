@@ -56,6 +56,7 @@ if ($r->init()) {
 
     $tag->select;
     open(DUMP, ">$outfile") or die "Can't open dump file: $!";
+    print "Dumping tag to $outfile\n";
     for (my $i = 0; $i < $tag->blocks; $i++) {
         if (my $data = $tag->read_block($i)) {
             # if we are dumping an ultralight token, 
