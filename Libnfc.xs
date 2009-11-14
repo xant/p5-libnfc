@@ -498,7 +498,7 @@ mpd(THIS, __value = NO_INIT)
                 char *v = SvPV(__value, len);
                 memcpy(&THIS->mpd.abtData, v, len);
             } else {
-                croak("Size %d of packed data != expected 6 for __value", len);
+                croak("Size %d of packed data != expected 16 for __value", len);
             }
         }
     }
