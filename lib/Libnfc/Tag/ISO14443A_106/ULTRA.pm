@@ -115,7 +115,7 @@ sub _parse_locking_bits {
     my ($b1, $b2) = unpack("CC", $lockbytes);
     my %acl = (
         blbits => {
-            'otp'   => $b1 & 1,
+            '3 (otp)'   => $b1 & 1,
             '4_9'   => ($b1 >> 1) & 1,
             '10_15' => ($b1 >> 2) & 1
         },
