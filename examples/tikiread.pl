@@ -19,6 +19,8 @@ if ($r->init()) {
     $tag->set_keys(@keys);
 
     $tag->select;
+    print "ACL - 1 means blocked, 0 means writeable. blbits rule them all\n";
+    print Data::Dumper->Dump([$tag->acl], ["ACL"]);
     for (my $i = 0; $i < $tag->blocks; $i++) {
         if (my $data = $tag->read_block($i)) {
             # when reading a block from an ultralight token, 

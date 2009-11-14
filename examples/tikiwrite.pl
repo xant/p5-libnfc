@@ -14,7 +14,10 @@ warn "No TAG" and exit -1 unless($tag);
 $tag->set_keys(@keys);
 
 $tag->select;
-if ($tag->write_block(15, $ARGV[0])) {
+my $block = $ARGV[1] || 15; # defaults to last block when not specified
+die "bad block number $block" unless $block =~ /^\d+$/ and $block <= 15;
+# tikitags/touchatag stickers allow to write only on block 15
+if ($tag->write_block($block, $ARGV[0])) { 
     warn "input will be truncated to 4 chars";
 } else {
         warn $tag->error."\n";
