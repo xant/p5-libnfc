@@ -35,8 +35,8 @@ BEGIN {    # must be defined at compile time
             MU => {
                 MU_REQA           => 0x26,
                 MU_WUPA           => 0x52,
-                MU_SELECT1           => 0x93,
-                MU_SELECT2           => 0x95,
+                MU_SELECT1        => 0x93,
+                MU_SELECT2        => 0x95,
                 MU_READ           => 0x30,
                 MU_WRITE          => 0xA2,
                 MU_CWRITE         => 0xA0,
@@ -48,7 +48,10 @@ BEGIN {    # must be defined at compile time
 # define the exports
 our %EXPORT_TAGS
      = ( 'all' => [map { keys %$_ } values %constants], map { $_ => [ keys %{ $constants{$_} } ] } keys %constants );
-     our @EXPORT_OK = ( map { keys %$_ } values %constants );
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+
+# exporting all constants by default ... there are just a few right now, so it's not a big problem
+our @EXPORT = @EXPORT_OK;
 
 use constant + { map { %$_ } values %constants }; 
 
