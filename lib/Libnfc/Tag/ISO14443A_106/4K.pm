@@ -326,6 +326,7 @@ sub load_keys {
         }
         $cnt++;
     }
+    close(KEYFILE);
 }
 
 1;
