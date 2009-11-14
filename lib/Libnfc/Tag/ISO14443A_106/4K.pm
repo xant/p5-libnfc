@@ -106,8 +106,50 @@ sub read_block {
     return undef;
 }
 
-sub writeBlock {
-    my ($self, $block) = @_;
+sub write_block {
+    my ($self, $block, $data, $force) = @_;
+
+    my $sector; # sort out the sector we are going to access
+    if ($block < 128) { # small data blocks : 4 x 16 bytes
+        $sector = $block/4;
+    } else { # big datablocks : 16 x 16 bytes
+        $sector = 32 + ($block - 128)/16;
+    }
+
+    # don't write on trailer blocks unless explicitly requested ($force is tru)
+    if ($block == $self->_trailer_block($sector) and !$force) { 
+        $self->{_last_error} = "use the \$force Luke";
+        return undef;
+    }
+
+    # check the ack for this datablock
+    my $acl = $self->acl($sector);
+    my $step = ($sector < 32)?4:16;
+    my $datanum = "data".($block % $step);
+    if ($acl && $acl->{parsed}->{$datanum}) {
+        unless (@{$acl->{parsed}->{$datanum}}[1]) {
+            $self->{_last_error} = "ACL denies reads on sector $sector, block $block";
+            return undef;
+        }
+    }
+
+    # try to do authentication only if we have required keys loaded
+    if (scalar(@{$self->{_keys}}) >= $sector) { 
+        return undef unless
+            $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[1] == 2) ? MC_AUTH_B : MC_AUTH_A);
+    }
+
+    my $mp = mifare_param->new();
+    my $mpt = $mp->_to_ptr;
+    $mpt->mpd(pack("a16", $data));
+
+    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_WRITE, $block, $mpt)) {
+        return 1;
+    } else {
+        # XXX can libnfc provide more info about the failure?
+        $self->{_last_error} = "Writing to block $block failed"; 
+    } 
+    return undef;
 }
 
 sub read_sector {
@@ -216,10 +258,10 @@ sub _parse_acl {
         }
     );
     $acl{parsed} = {
-        data0   =>    $data_acl{$acl{bits}->{c1}->[0] | ($acl{bits}->{c2}->[0] << 1) | ($acl{bits}->{c3}->[0] << 2)},
-        data1   =>    $data_acl{$acl{bits}->{c1}->[1] | ($acl{bits}->{c2}->[1] << 1) | ($acl{bits}->{c3}->[1] << 2)},
-        data2   =>    $data_acl{$acl{bits}->{c1}->[2] | ($acl{bits}->{c2}->[2] << 1) | ($acl{bits}->{c3}->[2] << 2)},
-        trailer => $trailer_acl{$acl{bits}->{c1}->[3] | ($acl{bits}->{c2}->[3] << 1) | ($acl{bits}->{c3}->[3] << 2)}
+        data0   =>    $data_acl{($acl{bits}->{c1}->[0] << 2) | ($acl{bits}->{c2}->[0] << 1) | ($acl{bits}->{c3}->[0])},
+        data1   =>    $data_acl{($acl{bits}->{c1}->[1] << 2) | ($acl{bits}->{c2}->[1] << 1) | ($acl{bits}->{c3}->[1])},
+        data2   =>    $data_acl{($acl{bits}->{c1}->[2] << 2) | ($acl{bits}->{c2}->[2] << 1) | ($acl{bits}->{c3}->[2])},
+        trailer => $trailer_acl{($acl{bits}->{c1}->[3] << 2) | ($acl{bits}->{c2}->[3] << 1) | ($acl{bits}->{c3}->[3])}
     };
 
     return wantarray?%acl:\%acl;
