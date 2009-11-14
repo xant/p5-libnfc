@@ -5,6 +5,25 @@ use Data::Dumper;
 use Libnfc qw(:all);
 use Libnfc::CONSTANTS ':all';
 
+sub transceive_bytes {
+    my ($pdi, $cmd, $len) = @_;
+    print "T: " and print_hex($cmd, $len);
+    if ($resp = nfc_initiator_transceive_bytes($pdi, $cmd, $len)) {
+        print "R: " and print_hex($resp, length($resp));
+        return $resp;
+    }
+    return undef;
+}
+
+sub transceive_bits {
+    my ($pdi, $cmd, $len) = @_;
+    print "T: " and print_hex($cmd, $len);
+    if (my $resp = nfc_initiator_transceive_bits($pdi, $cmd, $len)) {
+        print "R: " and print_hex($resp, length($resp));
+        return $resp;
+    }
+    return undef;
+}
 
 my $pdi = nfc_connect();
 if ($pdi == 0) { 
@@ -24,42 +43,32 @@ nfc_configure($pdi, ,DCO_ACTIVATE_FIELD, 1);
 my $retry = 0;
 do {
     my $cmd = pack("C", MU_REQA);
-    print "T: " and print_hex($cmd, length($cmd));
-    if (my $resp = nfc_initiator_transceive_bits($pdi, $cmd, 7)) {
-        print "R: " and print_hex($resp, length($resp));
+    if (my $resp = transceive_bits($pdi, $cmd, 7)) {
         $cmd = pack("C2", MU_SELECT1, 0x20); # ANTICOLLISION of cascade level 1
-        print "T: " and print_hex($cmd, length($cmd));
-        if ($resp = nfc_initiator_transceive_bytes($pdi, $cmd, 2)) {
-            print "R: " and print_hex($resp, length($resp));
+        if ($resp = transceive_bytes($pdi, $cmd, 2)) {
             my (@rb) = unpack("C".length($resp), $resp);
             my $cuid = pack("C3", $rb[1], $rb[2], $rb[3]);
             if ($rb[0] == 0x88) { # define a constant for 0x88
                 $cmd = pack("C9", MU_SELECT1, 0x70, @rb); # SELECT of cascade level 1  
                 append_iso14443a_crc($cmd, 7);
-                print "T: " and print_hex($cmd, length($cmd));
-                if ($resp = nfc_initiator_transceive_bytes($pdi, $cmd, 9)) {
-                    print "R: " and print_hex($resp, length($resp));
+                if ($resp = transceive_bytes($pdi, $cmd, 9)) {
                     # we need to do cascade level 2
                     # first let's get the missing part of the uid
                     $cmd = pack("C2", MU_SELECT2, 0x20); # ANTICOLLISION of cascade level 2
-                    print "T: " and print_hex($cmd, length($cmd));
-                    if ($resp = nfc_initiator_transceive_bytes($pdi, $cmd, 2)) {
-                        print "R: " and print_hex($resp, length($resp));
+                    if ($resp = transceive_bytes($pdi, $cmd, 2)) {
                         @rb = unpack("C".length($resp), $resp);
                         $cuid .= pack("C3", $rb[1], $rb[2], $rb[3]);
                         $cmd = pack("C9", MU_SELECT2, 0x70, @rb); # SELECT of cascade level 2
                         append_iso14443a_crc($cmd, 7);
-                        print "T: " and print_hex($cmd, length($cmd));
-                        if ($resp = nfc_initiator_transceive_bytes($pdi, $cmd, 9)) {
-                            print "R: " and print_hex($resp, length($resp));
+                        if (transceive_bytes($pdi, $cmd, 9)) {
                             if ($uid == $cuid) {
-                                 print "2 level cascade anticollision/selection passed for uid : ";
+                                 print "2 level cascade anticollision/selection passed for uid : " and
                                  print_hex($uid, 6);
                             } else {
-                                print "Halted uid : ";
                                 # HALT the unwanted tag
                                 $cmd = pack("C2", MU_HALT, 0x00);
-                                nfc_initiator_transceive_bytes($pdi, $cmd, 2);
+                                transceive_bytes($pdi, $cmd, 2);
+                                print "Halted uid : " and print_hex($uid, 6);
                                 $retry = 1;
                             }
                         } else {
