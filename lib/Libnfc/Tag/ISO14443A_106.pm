@@ -3,7 +3,13 @@ package Libnfc::Tag::ISO14443A_106;
 use strict;
 
 use base qw(Libnfc::Tag);
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants;
+
+sub init {
+    my ($self) = @_;
+    $self->{_keys} = [];
+    return $self;
+}
 
 sub type {
     my $self = shift;

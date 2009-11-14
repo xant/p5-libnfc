@@ -3,7 +3,7 @@
 
 use Data::Dumper;
 use Libnfc qw(:all);
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants;
 
 sub transceive_bytes {
     my ($pdi, $cmd, $len) = @_;

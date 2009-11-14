@@ -15,7 +15,7 @@ BEGIN { use_ok('Libnfc') };
 # its man page ( perldoc Test::More ) for help writing this test script.
 
 use Libnfc ':all';
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants ':all';
 
 
 my $pdi = nfc_connect();

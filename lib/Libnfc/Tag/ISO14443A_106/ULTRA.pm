@@ -4,13 +4,13 @@ use strict;
 
 use base qw(Libnfc::Tag::ISO14443A_106);
 use Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc print_hex);
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants;
 
 sub read_block {
     my ($self, $block, $noauth, $truncate) = @_;
     my $cmd = pack("C4", MU_READ, $block); # ANTICOLLISION of cascade level 1
     append_iso14443a_crc($cmd, 2);
-    if (my $resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 4)) {
+    if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 4)) {
         if ($self->{debug}) {
             printf("R: ");
             # don't dump out parity bytes, which will be dropped later
@@ -54,7 +54,7 @@ sub write_block {
         my $postfix = pack("C2", 0, 0);
         my $cmd = $prefix.pack("a".$len, $data).$postfix;
         append_iso14443a_crc($cmd, $len+2);
-        if (my $resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, $len+4)) {
+        if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, $len+4)) {
             if ($self->{debug}) {
                 printf("W: ");
                 print_hex($data, length($data));
@@ -143,42 +143,42 @@ sub select {
     my $self = shift;
 
     my $uid = pack("C6", @{$self->uid});
-    nfc_configure($self->{reader}->{_pdi}, DCO_ACTIVATE_FIELD, 0);
+    nfc_configure($self->reader->pdi, DCO_ACTIVATE_FIELD, 0);
 
     # Configure the CRC and Parity settings
-    nfc_configure($self->{reader}->{_pdi}, DCO_HANDLE_CRC, 0);
-    nfc_configure($self->{reader}->{_pdi}, DCO_HANDLE_PARITY, 1);
+    nfc_configure($self->reader->pdi, DCO_HANDLE_CRC, 0);
+    nfc_configure($self->reader->pdi, DCO_HANDLE_PARITY, 1);
 
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($self->{reader}->{_pdi}, ,DCO_ACTIVATE_FIELD, 1);
+    nfc_configure($self->reader->pdi, ,DCO_ACTIVATE_FIELD, 1);
     my $retry = 0;
     do {
-        if (my $resp = nfc_initiator_transceive_bits($self->{reader}->{_pdi}, pack("C", MU_REQA), 7)) {
+        if (my $resp = nfc_initiator_transceive_bits($self->reader->pdi, pack("C", MU_REQA), 7)) {
             my $cmd = pack("C2", MU_SELECT1, 0x20); # ANTICOLLISION of cascade level 1
-            if ($resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 2)) {
+            if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 2)) {
                 my (@rb) = unpack("C".length($resp), $resp);
                 my $cuid = pack("C3", $rb[1], $rb[2], $rb[3]);
                 if ($rb[0] == 0x88) { # define a constant for 0x88
                     $cmd = pack("C9", MU_SELECT1, 0x70, @rb); # SELECT of cascade level 1  
                     #my $crc = $self->crc($cmd);
                     append_iso14443a_crc($cmd, 7);
-                    if ($resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 9)) {
+                    if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 9)) {
                         # we need to do cascade level 2
                         # first let's get the missing part of the uid
                         $cmd = pack("C2", MU_SELECT2, 0x20); # ANTICOLLISION of cascade level 2
-                        if ($resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 2)) {
+                        if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 2)) {
                             @rb = unpack("C".length($resp), $resp);
                             $cuid .= pack("C3", $rb[1], $rb[2], $rb[3]);
                             $cmd = pack("C9", MU_SELECT2, 0x70, @rb); # SELECT of cascade level 2
                             #my $crc = $self->crc($cmd);
                             append_iso14443a_crc($cmd, 7);
-                            if ($resp = nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 9)) {
+                            if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 9)) {
                                 if ($uid == $cuid) {
                                     return 1;
                                 } else {
                                     # HALT the unwanted tag
                                     $cmd = pack("C2", MU_HALT, 0x00);
-                                    nfc_initiator_transceive_bytes($self->{reader}->{_pdi}, $cmd, 2);
+                                    nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 2);
                                     $retry = 1;
                                 }
                             } else {

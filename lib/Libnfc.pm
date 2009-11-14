@@ -7,7 +7,7 @@ use Carp;
 
 require Exporter;
 use AutoLoader;
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants;
 
 our @ISA = qw(Exporter);
 

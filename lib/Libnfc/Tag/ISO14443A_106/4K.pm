@@ -3,8 +3,8 @@ package Libnfc::Tag::ISO14443A_106::4K;
 use strict;
 
 use base qw(Libnfc::Tag::ISO14443A_106);
-use Libnfc qw(nfc_initiator_select_tag nfc_initiator_mifare_cmd);
-use Libnfc::CONSTANTS ':all';
+use Libnfc qw(nfc_initiator_select_tag nfc_initiator_mifare_cmd print_hex);
+use Libnfc::Constants;
 
 # Internal representation of TABLE 3 (M001053_MF1ICS50_rev5_3.pdf)
 # the key are the actual ACL bits (C1 C2 C3) ,
@@ -91,7 +91,7 @@ sub read_block {
     }
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
-    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_READ, $block, $mpt)) {
+    if (nfc_initiator_mifare_cmd($self->reader->pdi, MC_READ, $block, $mpt)) {
         return unpack("a16", $mpt->mpd); 
     } else {
         $self->{_last_error} = "Error reading $sector, block $block"; # XXX - does libnfc provide any clue on the ongoing error?
@@ -104,7 +104,7 @@ sub write_block {
 
     my $sector = $self->block2sector($block); # sort out the sector we are going to access
     # don't write on trailer blocks unless explicitly requested ($force is tru)
-    if ($block == $self->_trailer_block($sector) and !$force) { 
+    if ($block == $self->trailer_block($sector) and !$force) { 
         $self->{_last_error} = "use the \$force Luke";
         return undef;
     }
@@ -130,7 +130,7 @@ sub write_block {
     my $mpt = $mp->_to_ptr;
     $mpt->mpd(pack("a16", $data));
 
-    if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_WRITE, $block, $mpt)) {
+    if (nfc_initiator_mifare_cmd($self->reader->pdi, MC_WRITE, $block, $mpt)) {
         return 1;
     } else {
         # XXX can libnfc provide more info about the failure?
@@ -182,34 +182,34 @@ sub write {
 
 sub unlock {
     my ($self, $sector, $keytype) = @_;
-    my $tblock = $self->_trailer_block($sector);
+    my $tblock = $self->trailer_block($sector);
 
     $keytype = MC_AUTH_A unless ($keytype and ($keytype == MC_AUTH_A or $keytype == MC_AUTH_B));
     my $keyidx = ($keytype == MC_AUTH_A) ? 0 : 1;
-    my $p = tag_info->new();
-    #warn nfc_initiator_select_tag($self->{reader}->{_pdi}, IM_ISO14443A_106, $self->{_pti}->abtUid, 4, $p->_to_ptr);
     my $mp = mifare_param->new();
     my $mpt = $mp->_to_ptr;
-    # trying key a
-    $mpt->mpa($self->{_keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
-    # TODO - introduce debug-flag and proper debug messages
-    #printf("%x %x %x %x %x %x ---- %x %x %x %x\n", unpack("C10", $mpt->mpa));
 
-    return 1 if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, $keytype, $tblock, $mpt));
-    $self->{_last_error} = "Failed to authenticate on sector $sector (tblock:$tblock) with key ".
-        sprintf("%x %x %x %x %x %x\n", unpack("C6", $mpt->mpa));
+    $mpt->mpa($self->{_keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
+
+    printf("unlocking sector $sector with key/uid : " .
+        "%x " x 6 . " ---- " . "%x " x 4 . "\n", unpack("C10", $mpt->mpa)) if $self->{debug};
+
+    return 1 if (nfc_initiator_mifare_cmd($self->reader->pdi, $keytype, $tblock, $mpt));
+
+    $self->{_last_error} = "Failed to authenticate on sector $sector (tblock:$tblock) with key " .
+        sprintf("%x " x 6 . "\n", unpack("C6", $mpt->mpa));
         
     return 0;
 }
 
 sub acl {
     my ($self, $sector) = @_;
-    my $tblock = $self->_trailer_block($sector);
+    my $tblock = $self->trailer_block($sector);
 
     if ($self->unlock($sector)) {
         my $mp = mifare_param->new();
         my $mpt = $mp->_to_ptr;
-        if (nfc_initiator_mifare_cmd($self->{reader}->{_pdi}, MC_READ, $tblock, $mpt)) {
+        if (nfc_initiator_mifare_cmd($self->reader->pdi, MC_READ, $tblock, $mpt)) {
             my $j = $mpt->mpd;
             return $self->_parse_acl(unpack("x6a4x6", $mpt->mpd));
         }
@@ -255,7 +255,7 @@ sub _parse_acl {
 }
 
 # compute the trailer block number for a given sector
-sub _trailer_block {
+sub trailer_block {
     use integer; # force integer arithmetic to round divisions
 
     my ($self, $sector) = @_;
@@ -283,6 +283,48 @@ sub block2sector {
         return $block/4;
     } else { # big datablocks : 16 x 16 bytes
         return 32 + ($block - 128)/16;
+    }
+}
+
+sub is_trailer_block {
+    my ($self, $block) = @_;
+    return (($block < 128 and $block%4 == 3) or $block%16 == 15) ? 1 : 0;
+}
+
+sub set_key {
+    my ($self, $sector, $keyA, $keyB) = @_;
+    $self->{_keys}->[$sector] = [$keyA, $keyB];
+}
+
+sub set_keys {
+    my ($self, @keys) = @_;
+    my $cnt = 0;
+    foreach my $key (@keys) {
+        if (ref($key) and ref($key) eq "ARRAY") {
+            $self->set_key($cnt++, @$key[0], @$key[1]);
+        } else {
+            $self->set_key($cnt++, $key, $key);
+        }
+    }
+}
+
+sub load_keys {
+    my ($self, $keyfile) = @_;
+    ($self->{_last_error} = "$!") and return undef 
+        unless(open(KEYFILE, $keyfile));
+    my $data;
+    my $cnt = 0;
+    print "Loading keys from $keyfile" if ($self->{debug});
+    while (read(KEYFILE, $data, 16)) {
+        if ($self->is_trailer_block($cnt)) {
+            my ($keyA, $keyB) = unpack("a6x4a6", $data);
+            if ($self->{debug}) {
+                print "A: " and print_hex($keyA, 6);
+                print "B: " and print_hex($keyB, 6);
+            }
+            $self->set_key($self->block2sector($cnt), $keyA, $keyB);
+        }
+        $cnt++;
     }
 }
 

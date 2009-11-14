@@ -9,7 +9,7 @@ t/c-api.t
 t/p-api.t
 fallback/const-c.inc
 fallback/const-xs.inc
-lib/Libnfc/CONSTANTS.pm
+lib/Libnfc/Constants.pm
 lib/Libnfc/Reader.pm
 lib/Libnfc/Tag/ISO14443A_106.pm
 lib/Libnfc/Tag/ISO14443A_106/4K.pm

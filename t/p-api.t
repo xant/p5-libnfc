@@ -8,7 +8,7 @@
 use Test::More qw(no_plan);
 use Data::Dumper;
 BEGIN { use_ok('Libnfc::Reader') };
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants ':all';
 
 #########################
 

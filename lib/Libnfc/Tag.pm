@@ -2,8 +2,8 @@ package Libnfc::Tag;
 
 use strict;
 
-use Libnfc qw(nfc_initiator_select_tag);
-use Libnfc::CONSTANTS ':all';
+use Libnfc qw(nfc_initiator_select_tag nfc_initiator_deselect_tag);
+use Libnfc::Constants;
 use Data::Dumper;
 
 my %types = (
@@ -22,7 +22,7 @@ sub new {
     $self->{_ti} = tag_info->new();
     $self->{_pti} = $self->{_ti}->_to_ptr;
     $self->{reader} = $reader;
-    if (!nfc_initiator_select_tag($reader->{_pdi}, $type, 0, 0, $self->{_pti}))
+    if (!nfc_initiator_select_tag($reader->pdi, $type, 0, 0, $self->{_pti}))
     {
         warn("Error: no tag was found\n");
         return undef;
@@ -43,49 +43,28 @@ sub new {
         return undef;
     }
 
-    $self->{_keys} = [];
+    $self->init;
     return $self;
-
-}
-
-sub set_key {
-    my ($self, $sector, $keyA, $keyB) = @_;
-    $self->{_keys}->[$sector] = [$keyA, $keyB];
-}
-
-sub set_keys {
-    my ($self, @keys) = @_;
-    my $cnt = 0;
-    foreach my $key (@keys) {
-        if (ref($key) and ref($key) eq "ARRAY") {
-            $self->set_key($cnt++, @$key[0], @$key[1]);
-        } else {
-            $self->set_key($cnt++, $key, $key);
-        }
-    }
-}
-
-sub read {
-    my ($self) = shift;
-    warn "[",ref($self)."] Libnfc::Tag::read() - OVERRIDE ME";
-}
-
-sub write {
-    my ($self) = shift;
-    warn "[",ref($self)."] Libnfc::Tag::write() - OVERRIDE ME";
-}
-
-sub dump_keys {
-}
-
-sub dump_info {
-    my $self = shift;
-    warn "[",ref($self)."] Libnfc::Tag::dumpInfo() - OVERRIDE ME";
 }
 
 sub error {
     my $self = shift;
     return $self->{_last_error};
+}
+
+sub reader {
+    my $self = shift;
+    return $self->{reader};
+}
+sub AUTOLOAD {
+    our $AUTOLOAD;
+    warn "$AUTOLOAD not implemented \n";
+    return undef;
+}
+
+sub DESTROY {
+    my $self = shift;
+    nfc_initiator_deselect_tag($self->reader->pdi);
 }
 
 1;

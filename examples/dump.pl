@@ -2,25 +2,9 @@
 
 use Data::Dumper;
 use Libnfc::Reader;
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants;
 
 my $outfile = "./dump.out";
-# keys are needed only if you are attempting to dump a classic 4K token
-# ultralight tokens don't need keys
-my @keys = (
-    # default keys
-    pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
-    pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
-
-#   ... add your keys here in the format [ keya, keyb ] ...
-#   for instance : 
-#   [ pack("C6", 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF),
-#     pack("C6", 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA) ],
-#   one couple for each sector. The index inside this array must
-#   coincide with the sector number they open.
-#
-
-);
 
 sub usage {
     printf("%s [ -o dump_filename ]\n", $0);
@@ -40,7 +24,7 @@ sub parse_cmdline {
 }
 
 parse_cmdline();
-my $r = Libnfc::Reader->new(debug => 1);
+my $r = Libnfc::Reader->new(debug => 0);
 if ($r->init()) {
     printf ("Reader: %s\n", $r->name);
     my $tag = $r->connect(IM_ISO14443A_106);
@@ -52,9 +36,25 @@ if ($r->init()) {
         exit -1;
     }
 
-    $tag->set_keys(@keys);
+    $tag->load_keys("./tkeys");
+    # or use :
+    # my @keys = (
+    # # default keys
+    # pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
+    # pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
+
+    # #   ... add your keys here in the format [ keya, keyb ] ...
+    # #   for instance : 
+    # #   [ pack("C6", 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF),
+    # #     pack("C6", 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA) ],
+    # #   one couple for each sector. The index inside this array must
+    # #   coincide with the sector number they open.
+    # #
+    # );
+    # $tag->set_keys(@keys);
 
     $tag->select;
+
     open(DUMP, ">$outfile") or die "Can't open dump file: $!";
     print "Dumping tag to $outfile\n";
     for (my $i = 0; $i < $tag->blocks; $i++) {
@@ -64,6 +64,12 @@ if ($r->init()) {
             # so we can skip next 3 blocks
             $i += 3 if ($tag->type eq "ULTRA");
             print DUMP $data;
+            my $len = length($data);
+            my @databytes = unpack("C".$len, $data);
+            # let's format the output.
+            # unprintable chars will be outputted as a '.' (like any other hexdumper)
+            my @chars = map { ($_ > 31 and $_ < 127) ? $_ : ord('.') } @databytes; 
+            printf ("%03d: [" . "%02x" x $len . "]\t" . "%c" x $len . "\n", $i, @databytes, @chars);
         } else {
             warn $tag->error."\n";
             if ($tag->type eq "4K") {

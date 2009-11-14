@@ -7,7 +7,7 @@ use Carp;
 
 use Libnfc qw(nfc_connect nfc_disconnect nfc_initiator_init nfc_configure);
 use Libnfc::Tag;
-use Libnfc::CONSTANTS ':all';
+use Libnfc::Constants;
 
 sub new {
     my ($class, %args) = @_;
@@ -43,6 +43,11 @@ sub name {
 sub connect {
     my ($self, $type) = @_;
     return Libnfc::Tag->new($self, $type);
+}
+
+sub pdi {
+    my $self = shift;
+    return $self->{_pdi};
 }
 
 sub print_hex {

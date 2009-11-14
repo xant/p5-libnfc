@@ -1,4 +1,4 @@
-package Libnfc::CONSTANTS;
+package Libnfc::Constants;
 
 use Exporter;
 our @ISA = qw( Exporter );
