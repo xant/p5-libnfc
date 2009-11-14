@@ -71,15 +71,8 @@ my %data_acl = (            # read, write, increment, decrement/restore/transfer
 sub read_block {
     my ($self, $block, $noauth) = @_;
 
-    use integer; # force integer arithmetic to round divisions
+    my $sector = $self->block2sector($block); # sort out the sector we are going to access
 
-    my $sector; # sort out the sector we are going to access
-    if ($block < 128) { # small data blocks : 4 x 16 bytes
-        $sector = $block/4;
-    } else { # big datablocks : 16 x 16 bytes
-        $sector = 32 + ($block - 128)/16;
-    }
-    
     # check the ack for this datablock
     my $acl = $self->acl($sector);
     my $step = ($sector < 32)?4:16;
@@ -109,13 +102,7 @@ sub read_block {
 sub write_block {
     my ($self, $block, $data, $force) = @_;
 
-    my $sector; # sort out the sector we are going to access
-    if ($block < 128) { # small data blocks : 4 x 16 bytes
-        $sector = $block/4;
-    } else { # big datablocks : 16 x 16 bytes
-        $sector = 32 + ($block - 128)/16;
-    }
-
+    my $sector = $self->block2sector($block); # sort out the sector we are going to access
     # don't write on trailer blocks unless explicitly requested ($force is tru)
     if ($block == $self->_trailer_block($sector) and !$force) { 
         $self->{_last_error} = "use the \$force Luke";
@@ -269,6 +256,8 @@ sub _parse_acl {
 
 # compute the trailer block number for a given sector
 sub _trailer_block {
+    use integer; # force integer arithmetic to round divisions
+
     my ($self, $sector) = @_;
     if ($sector < 32) {
         return (($sector+1) * 4) -1;
@@ -285,6 +274,16 @@ sub blocks {
 # number of sectors in the tag
 sub sectors {
     return 40;
+}
+
+sub block2sector {
+    my ($self, $block) = @_;
+    use integer; # force integer arithmetic to round divisions
+    if ($block < 128) { # small data blocks : 4 x 16 bytes
+        return $block/4;
+    } else { # big datablocks : 16 x 16 bytes
+        return 32 + ($block - 128)/16;
+    }
 }
 
 1;
