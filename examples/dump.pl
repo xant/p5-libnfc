@@ -36,7 +36,8 @@ if ($r->init()) {
         exit -1;
     }
 
-    $tag->load_keys("./tkeys");
+    # TODO - allow to specify the keyfile through a cmdline argument
+    $tag->load_keys("./tkeys") if (-f "./tkeys"); 
     # or use :
     # my @keys = (
     # # default keys
