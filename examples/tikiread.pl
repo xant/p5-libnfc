@@ -17,8 +17,6 @@ if ($r->init()) {
         exit -1;
     }
 
-    $tag->set_keys(@keys);
-
     die "Token is not a mifare ultralight" unless $tag->type eq "ULTRA";
 
     # doing the 2-level cascade selection process  is not necessary , 
@@ -35,14 +33,16 @@ if ($r->init()) {
     # when reading a block from an ultralight token, 
     # we receive always 16 bytes (so 4 blocks, since 
     # a single block on the token is 4bytes long)
-    for (my $i = 0; $i < $tag->blocks; $i+= 3) {
+    for (my $i = 0; $i < $tag->blocks; $i+= 4) {
         if (my $data = $tag->read_block($i)) {
+            # now you can do whatever you want with the $data
+            # in this example we are just going to output received bytes
+            # in a decent way
             my $len = length($data);
             my @databytes = unpack("C".$len, $data);
-            # let's format the output.
             # unprintable chars will be outputted as a '.' (like any other hexdumper)
             my @chars = map { ($_ > 31 and $_ < 127) ? $_ : ord('.') } @databytes; 
-            printf ("[" . "%02x" x $len . "]\t" . "%c" x $len . "\n", @databytes, @chars);
+            printf ("%02d: [" . "%02x" x $len . "]\t" . "%c" x $len . "\n", $i, @databytes, @chars);
         } else {
             warn $tag->error."\n";
         }
