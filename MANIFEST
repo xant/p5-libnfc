@@ -17,3 +17,7 @@ lib/Libnfc/Tag/ISO14443A_106/ULTRA.pm
 lib/Libnfc/Tag.pm
 lib/Libnfc.pm
 examples/dump.pl
+examples/tikiread.pl
+examples/tikiwrite.pl
+examples/write_4k.pl
+examples/anticol_c.pl
