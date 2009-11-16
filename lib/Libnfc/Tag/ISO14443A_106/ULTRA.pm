@@ -152,6 +152,7 @@ sub select {
     # Enable field so more power consuming cards can power themselves up
     nfc_configure($self->reader->pdi, ,DCO_ACTIVATE_FIELD, 1);
     my $retry = 0;
+    my $retrycnt = 0;
     do {
         if (my $resp = nfc_initiator_transceive_bits($self->reader->pdi, pack("C", MU_REQA), 7)) {
             my $cmd = pack("C2", MU_SELECT1, 0x20); # ANTICOLLISION of cascade level 1
@@ -180,6 +181,7 @@ sub select {
                                     $cmd = pack("C2", MU_HALT, 0x00);
                                     nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 2);
                                     $retry = 1;
+                                    $retrycnt++;
                                 }
                             } else {
                                 $self->{_last_error} = "Select cascade level 2 failed";
@@ -197,7 +199,7 @@ sub select {
         } else {
             $self->{_last_error} = "Device doesn't respond to REQA";
         }
-    } while ($retry);
+    } while ($retry-- and $retrycnt < 10); # fail if we are redoing the selection process for the tenth time
     return 0;
 }
 

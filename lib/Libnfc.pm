@@ -85,13 +85,14 @@ XSLoader::load('Libnfc', $VERSION);
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
 Libnfc - Perl extension for blah blah blah
 
 =head1 SYNOPSIS
+
+  ObjectOriented API: 
 
   use Libnfc;
 
@@ -103,9 +104,54 @@ Libnfc - Perl extension for blah blah blah
   $tag = $r->connectTag(IM_ISO14443A_106);
   $tag->dumpInfo
 
-  * TODO - continue documentation 
+  $block_data = $tag->read_block(240);
+  $entire_sector = $tag->read_sector(35);
+
+  $tag->write(240, $data); 
+
+  $uid = $tag->uid;
+
+===============================================================================
+
+  Procedural API: (equivalend of C api)
+
+    use Libnfc ':all';
+    use Libnfc::Constants ':all';
 
 
+    my $pdi = nfc_connect();
+    if ($pdi == 0) { 
+        print "No device!\n"; 
+        exit -1;
+    }
+    nfc_initiator_init($pdi); 
+    # Drop the field for a while
+    nfc_configure($pdi, DCO_ACTIVATE_FIELD, 0);
+    # Let the reader only try once to find a tag
+    nfc_configure($pdi, DCO_INFINITE_SELECT, 0);
+    nfc_configure($pdi, DCO_HANDLE_CRC, 1);
+    nfc_configure($pdi, DCO_HANDLE_PARITY, 1);
+    # Enable field so more power consuming cards can power themselves up
+    nfc_configure($pdi, DCO_ACTIVATE_FIELD, 1);
+
+    printf("Reader:\t%s\n", $pdi->acName);
+
+    # Try to find a MIFARE Classic tag
+    my $ti = tag_info->new();
+    my $pti = $ti->_to_ptr;
+    my $bool = nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti);
+
+    #read UID out of the tag
+    my $uidLen = $pti->uiUidLen;
+    my @uid = unpack("C".$uidLen, $pti->abtUid);
+    printf("UID:\t". "%x " x $uidLen ."\n", @uid);
+
+    # disconnects the tag
+    nfc_disconnect($pdi);
+
+
+
+  
 =head1 DESCRIPTION
 
   Provides a perl OO api to libnfc functionalities
@@ -129,11 +175,11 @@ None by default.
   _Bool nfc_initiator_init(const dev_info* pdi)
   _Bool nfc_initiator_mifare_cmd(const dev_info* pdi, const mifare_cmd mc, const uint8_t ui8Block, mifare_param* pmp)
   _Bool nfc_initiator_select_tag(const dev_info* pdi, const init_modulation im, const byte_t* pbtInitData, const uint32_t uiInitDataLen, tag_info* pti)
-  _Bool nfc_initiator_transceive_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar, byte_t* pbtRx, uint32_t* puiRxBits, byte_t* pbtRxPar)
-  _Bool nfc_initiator_transceive_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen, byte_t* pbtRx, uint32_t* puiRxLen)
+  $data = nfc_initiator_transceive_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
+  $data = nfc_initiator_transceive_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
   _Bool nfc_target_init(const dev_info* pdi, byte_t* pbtRx, uint32_t* puiRxBits)
-  _Bool nfc_target_receive_bits(const dev_info* pdi, byte_t* pbtRx, uint32_t* puiRxBits, byte_t* pbtRxPar)
-  _Bool nfc_target_receive_bytes(const dev_info* pdi, byte_t* pbtRx, uint32_t* puiRxLen)
+  _Bool nfc_target_receive_bits(const dev_info* pdi)
+  _Bool nfc_target_receive_bytes(const dev_info* pdi)
   _Bool nfc_target_send_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
   _Bool nfc_target_send_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
   byte_t oddparity(const byte_t bt)
@@ -148,7 +194,9 @@ None by default.
 
 =head1 SEE ALSO
 
-libnfc
+Libnfc::Constants Libnfc::Reader Libnfc::Tag 
+
+< check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
 
 =head1 AUTHOR
 
@@ -156,11 +204,10 @@ xant
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by System Administrator
+Copyright (C) 2009 by xant <xant@xant.net>
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut

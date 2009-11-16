@@ -68,3 +68,56 @@ sub DESTROY {
 }
 
 1;
+__END__
+=head1 NAME
+
+Libnfc::Tag - base class for specific tag implementations
+
+=head1 SYNOPSIS
+
+  use Libnfc;
+
+  $tag = $r->connectTag(IM_ISO14443A_106);
+
+=head1 DESCRIPTION
+
+  Base class for all specific tag implementations
+
+=head2 EXPORT
+
+None by default.
+
+=head2 Exportable functions
+
+=head1 METHODS
+
+=item reader
+
+returns the current reader object ( Libnfc::Reader )
+
+=item error ()
+
+returns the underlying reader descriptor (to be used with the Libnfc procedural api)
+$pdi = $r->pdi
+
+=head1 SEE ALSO
+
+Libnfc::Tag::ISO14443A_106::ULTRA Libnfc::Tag::ISO14443A_106::4K
+Libnfc::Tag::ISO14443A_106 Libnfc::Constants Libnfc 
+
+< check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
+
+=head1 AUTHOR
+
+xant
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 by xant <xant@xant.net>
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut
