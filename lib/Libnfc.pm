@@ -184,7 +184,7 @@ None by default.
   _Bool nfc_target_send_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
   byte_t oddparity(const byte_t bt)
   void oddparity_byte_ts(const byte_t* pbtData, const uint32_t uiLen, byte_t* pbtPar)
-  void print_hex(const byte_t* pbtData, const uint32_t uiLen)
+  void print_hex(const byte_t* pbtData [ uint32_t uiLen ])
   void print_hex_bits(const byte_t* pbtData, const uint32_t uiBits)
   void print_hex_par(const byte_t* pbtData, const uint32_t uiBits, const byte_t* pbtDataPar)
   uint32_t swap_endian32(const void* pui32)

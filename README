@@ -1,7 +1,12 @@
 Libnfc version 0.01
 ===================
 
-libnfc perl bindings and provides a perl OO api to access mifare rfid tags.
+perl bindings for libnfc.
+This module aims to provide an high-level OO api to access mifare rfid tags
+(and in general all readers and tags supported by libnfc).
+
+You can obviously access the procedural api exposed by the C library 
+which has been fully mapped within the perl context
 
 INSTALLATION
 

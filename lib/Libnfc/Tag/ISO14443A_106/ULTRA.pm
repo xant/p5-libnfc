@@ -8,7 +8,7 @@ use Libnfc::Constants;
 
 sub read_block {
     my ($self, $block, $noauth, $truncate) = @_;
-    my $cmd = pack("C4", MU_READ, $block); # ANTICOLLISION of cascade level 1
+    my $cmd = pack("C4", MU_READ, $block);
     append_iso14443a_crc($cmd, 2);
     if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 4)) {
         if ($self->{debug}) {
@@ -57,7 +57,7 @@ sub write_block {
         if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, $len+4)) {
             if ($self->{debug}) {
                 printf("W: ");
-                print_hex($data, length($data));
+                print_hex($data);
             }
             return 1;
         } else {
@@ -77,16 +77,6 @@ sub read_sector {
 sub write_sector {
     my $self = shift;
     $self->write_block(@_);
-}
-
-sub read {
-    my $self = shift;
-    return $self->read_sector(@_);
-}
-
-sub write {
-    my $self = shift;
-    return $self->write_sector(@_);
 }
 
 # number of blocks on the tag
@@ -115,9 +105,9 @@ sub _parse_locking_bits {
     my ($b1, $b2) = unpack("CC", $lockbytes);
     my %acl = (
         blbits => {
-            '3 (otp)'   => $b1 & 1,
-            '4_9'   => ($b1 >> 1) & 1,
-            '10_15' => ($b1 >> 2) & 1
+            '3 (otp)' =>  $b1 & 1,
+            '4_9'     => ($b1 >> 1) & 1,
+            '10_15'   => ($b1 >> 2) & 1
         },
         plbits => {
              3 => ($b1 >> 3) & 1,
@@ -125,7 +115,7 @@ sub _parse_locking_bits {
              5 => ($b1 >> 5) & 1,
              6 => ($b1 >> 6) & 1,
              7 => ($b1 >> 7) & 1,
-             8 => $b2 & 1,
+             8 =>  $b2 & 1,
              9 => ($b2 >> 1) & 1,
             10 => ($b2 >> 2) & 1,
             11 => ($b2 >> 3) & 1,
@@ -200,7 +190,105 @@ sub select {
             $self->{_last_error} = "Device doesn't respond to REQA";
         }
     } while ($retry-- and $retrycnt < 10); # fail if we are redoing the selection process for the tenth time
+    $self->{_last_error} = "Max retrycount reached" if ($retrycnt >= 10);
     return 0;
 }
 
 1;
+__END__
+=head1 NAME
+
+Libnfc::Tag::ISO14443A_106::ULTRA 
+Specific implementation for mifare ultralight tags
+
+=head1 SYNOPSIS
+
+  use Libnfc;
+
+  $tag = $r->connectTag(IM_ISO14443A_106);
+
+  # so the 2-level cascade selection process as specified in M028634_MF0ICU1_Functional_Spec_V3.4.pdf 
+  $tag->select()  
+
+
+=head1 DESCRIPTION
+
+  Base class for ISO14443A_106 compliant tags
+
+=head2 EXPORT
+
+None by default.
+
+=head2 Exportable functions
+
+=head1 METHODS
+
+=item read_block ( $block )
+
+Returns the data contained within the block number $block
+
+NOTE: read operations on ultrlight will return back 16 bytes,
+even if a single block is 4 bytes wide.
+Remember also about the "roll back" property described in chapter 6.6.4 of 
+the spec document : M028634_MF0ICU1_Functional_Spec_V3.4.pdf
+So , If you are reading one of the last three blocks, you will get data also from the 
+first ones , since always 4 blocks are read.
+
+(for instance. if you read block 15, you will get back data from 15, 1, 2 and 3)
+
+=item write_block ( $block, $data )
+
+Writes $data into $blocknum.
+Remember that ultralight cards have 4byte blocks
+so whatever you pass as $data will be truncated to 4 bytes
+
+=item read_sector ( $sector, $data )
+
+On ultralight token read_sector is only an alias for read_block
+since on such cards 1 sector (called also 'page' within the specs)
+is exactly 1 block
+
+=item write_sector ( $sector, $data )
+
+On ultralight token write_sector is only an alias for write_block
+since on such cards 1 sector (called also 'page' within the specs)
+is exactly 1 block
+
+=item blocks ( )
+
+Returns the number of blocks present on the card
+
+=item sectors ( )
+
+Returns the number of sectors present on the card
+
+=item acl ( )
+
+Returns a representation of the aclbits.
+(boths page-locking bits and block-locking bits)
+
+=item select ( )
+
+implements the 2-level cascade selection process
+
+=head1 SEE ALSO
+
+Libnfc::Tag::ISO14443A_106::ULTRA Libnfc::Tag::ISO14443A_106::4K
+Libnfc::Tag::ISO14443A_106 Libnfc::Constants Libnfc 
+
+< check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
+
+=head1 AUTHOR
+
+xant
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 by xant <xant@xant.net>
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut

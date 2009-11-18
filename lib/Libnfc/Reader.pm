@@ -50,9 +50,10 @@ sub pdi {
     return $self->{_pdi};
 }
 
+# just an accessor
 sub print_hex {
-    my ($self, $data) = @_;
-    print_hex($data, length($data));
+    my $self = shift;
+        Libnfc::print_hex(@_);
 }
 
 sub DESTROY {

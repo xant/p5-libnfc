@@ -112,8 +112,88 @@ sub crc {
     return $wCrc;
 }
 
-sub select {
-    return 1;
-}
-
 1;
+__END__
+=head1 NAME
+
+Libnfc::Tag - base class for ISO14443A_106 compliant tags.
+You won't never use this module direcctly but all the logic 
+common to all ISO14443A_106 tags should be placed here 
+(and inherited by all specific tag-implementations)
+
+=head1 SYNOPSIS
+
+  use Libnfc;
+
+  $tag = $r->connectTag(IM_ISO14443A_106);
+
+=head1 DESCRIPTION
+
+  Base class for ISO14443A_106 compliant tags
+
+=head2 EXPORT
+
+None by default.
+
+=head2 Exportable functions
+
+=head1 METHODS
+
+=item type
+
+returns the specific tag type actually hooked
+
+can be any of: 
+
+* ULTRA 1K MINI 4K DESFIRE JCOP30 JCOP40 OYSTER GEMPLUS MPCOS *
+
+(NOTE: only 4K and ULTRA are actually implemented)
+
+=item atqa ( )
+
+Returns an arrayref containing the 2 atqa bytes 
+
+=item uid ( )
+
+Returns an arrayref containing all uid bytes
+
+=item btsak ( )
+
+Returns the btsak byte (which is used to determine the tag type)
+
+=item ats ( )
+
+=item dump_info ( )
+
+Prints out all know information on the hooked tag
+
+=item crc ( )
+
+Compute the crc as required by ISO14443A_106 standard
+
+=item error ( )
+
+returns the underlying reader descriptor (to be used with the Libnfc procedural api)
+$pdi = $r->pdi
+
+=head1 SEE ALSO
+
+Libnfc::Tag::ISO14443A_106::ULTRA Libnfc::Tag::ISO14443A_106::4K
+Libnfc::Tag::ISO14443A_106 Libnfc::Constants Libnfc 
+
+< check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
+
+=head1 AUTHOR
+
+xant
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 by xant <xant@xant.net>
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut

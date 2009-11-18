@@ -187,10 +187,22 @@ byte_t
 oddparity(bt)
 	byte_t	bt
 
+// TODO - allow to specify an offset as well
 void
-print_hex(pbtData, uiLen)
-	byte_t *	pbtData
-	uint32_t	uiLen
+print_hex(__data, uiLen = NO_INIT)
+        SV *__data
+        STRLEN uiLen
+    PREINIT:
+	byte_t *	pbtData = NULL;
+    CODE:
+        if (SvPOK(__data)) {
+            if (items > 1) 
+                pbtData = (byte_t *)SvPV_nolen(__data);
+            else
+                pbtData = (byte_t *)SvPV(__data, uiLen);
+            print_hex(pbtData, uiLen);
+        }
+
 
 void
 print_hex_bits(pbtData, uiBits)

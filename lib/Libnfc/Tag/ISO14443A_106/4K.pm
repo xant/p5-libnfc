@@ -319,8 +319,8 @@ sub load_keys {
         if ($self->is_trailer_block($cnt)) {
             my ($keyA, $keyB) = unpack("a6x4a6", $data);
             if ($self->{debug}) {
-                print "A: " and print_hex($keyA, 6);
-                print "B: " and print_hex($keyB, 6);
+                print "A: " and print_hex($keyA);
+                print "B: " and print_hex($keyB);
             }
             $self->set_key($self->block2sector($cnt), $keyA, $keyB);
         }

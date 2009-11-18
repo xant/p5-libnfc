@@ -67,6 +67,16 @@ sub DESTROY {
     nfc_initiator_deselect_tag($self->reader->pdi);
 }
 
+# number of blocks on the tag
+sub blocks {
+    return 0;
+}
+
+# number of sectors on the tag
+sub sectors {
+    return 0;
+}
+
 1;
 __END__
 =head1 NAME
