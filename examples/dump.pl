@@ -5,6 +5,7 @@ use Libnfc::Reader;
 use Libnfc::Constants;
 
 my $outfile = "./dump.out";
+my $keyfile = "/Users/xant/mykeys";
 
 sub usage {
     printf("%s [ -o dump_filename ]\n", $0);
@@ -16,9 +17,11 @@ sub parse_cmdline {
         my $opt = $ARGV[$i];
         if ($opt eq "-h") {
             usage();
+        } elsif ($opt eq "-k") {
+            $keyfile = $ARGV[++$i];
         } elsif ($opt eq "-o") {
-           $outfile = $ARGV[++$i];
-           usage() unless($outfile);
+            $outfile = $ARGV[++$i];
+            usage() unless($outfile);
         }
     }
 }
@@ -37,7 +40,7 @@ if ($r->init()) {
     }
 
     # TODO - allow to specify the keyfile through a cmdline argument
-    $tag->load_keys("./tkeys") if (-f "./tkeys"); 
+    $tag->load_keys($keyfile) if (-f $keyfile); 
     # or use :
     # my @keys = (
     # # default keys
@@ -54,7 +57,7 @@ if ($r->init()) {
     # );
     # $tag->set_keys(@keys);
 
-    $tag->select;
+    $tag->select if ($tag->can("select")); 
 
     open(DUMP, ">$outfile") or die "Can't open dump file: $!";
     print "Dumping tag to $outfile\n";
