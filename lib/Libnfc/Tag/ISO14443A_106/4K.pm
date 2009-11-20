@@ -103,8 +103,10 @@ sub write_block {
     my ($self, $block, $data, $force) = @_;
 
     my $sector = $self->block2sector($block); # sort out the sector we are going to access
+
+    my $tblock = $self->trailer_block($sector);
     # don't write on trailer blocks unless explicitly requested ($force is tru)
-    if ($block == $self->trailer_block($sector) and !$force) { 
+    if ($block == $tblock && !$force) { 
         $self->{_last_error} = "use the \$force Luke";
         return undef;
     }
@@ -112,7 +114,7 @@ sub write_block {
     # check the ack for this datablock
     my $acl = $self->acl($sector);
     my $step = ($sector < 32)?4:16;
-    my $datanum = "data".($block % $step);
+    my $datanum = sprintf("data%d" , (15-($tblock-$block))%3);
     if ($acl && $acl->{parsed}->{$datanum}) {
         unless (@{$acl->{parsed}->{$datanum}}[1]) {
             $self->{_last_error} = "ACL denies reads on sector $sector, block $block";
@@ -139,17 +141,28 @@ sub write_block {
     return undef;
 }
 
+
+sub write_sector {
+    my ($self, $sector, $data) = @_;
+
+    my $tblock = $self->trailer_block($sector);
+    my $nblocks = ($sector < 32) ? 4 : 16;
+    my $firstblock = $tblock - $nblocks + 1;
+    my @databytes = unpack("C".length($data), $data);
+    for (my $block = $firstblock; $block < $tblock; $block++) {
+        my @blockbytes = splice(@databytes, 0, 16);
+        unless ($self->write_block($block, pack("C16", @blockbytes))) {
+            $self->{_last_error} = "Errors writing to block $block";
+            return undef;
+        }
+    }
+    return 1;
+}
+
 sub read_sector {
     my ($self, $sector) = @_;
-    my $tblock;
-    my $nblocks;
-    if ($sector < 32) {
-        $nblocks = 4;
-        $tblock = (($sector+1) * $nblocks) -1;
-    } else {
-        $nblocks = 16;
-        $tblock = 127 + (($sector - 31) * $nblocks);
-    }
+    my $tblock = $self->trailer_block($sector);
+    my $nblocks = ($sector < 32) ? 4 : 16;
     my $data;
     my $acl = $self->acl($sector);
 
@@ -164,20 +177,6 @@ sub read_sector {
         $data .= $newdata;
     }
     return $data;
-}
-
-sub write_sector {
-    my ($self, $sector, $data) = @_;
-}
-
-sub read {
-    my $self = shift;
-    return $self->read_sector(@_);
-}
-
-sub write {
-    my $self = shift;
-    return $self->write_sector(@_);
 }
 
 sub unlock {

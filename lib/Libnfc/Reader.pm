@@ -20,16 +20,12 @@ sub new {
 sub init {
     my $self = shift;
     if (nfc_initiator_init($self->{_pdi})) {
-        nfc_configure($self->{_pdi}, DCO_ACTIVATE_FIELD, 0);
-        # Let the reader only try once to find a tag
-        nfc_configure($self->{_pdi}, DCO_INFINITE_SELECT, 0);
-        nfc_configure($self->{_pdi}, DCO_HANDLE_CRC, 1);
-        nfc_configure($self->{_pdi}, DCO_HANDLE_PARITY, 1);
-        # Enable field so more power consuming cards can power themselves up
-        nfc_configure($self->{_pdi}, DCO_ACTIVATE_FIELD, 1);
         return $self;
     }
     return undef;
+}
+
+sub select {
 }
 
 sub name {

@@ -187,7 +187,6 @@ byte_t
 oddparity(bt)
 	byte_t	bt
 
-// TODO - allow to specify an offset as well
 void
 print_hex(__data, uiLen = NO_INIT)
         SV *__data
@@ -195,6 +194,7 @@ print_hex(__data, uiLen = NO_INIT)
     PREINIT:
 	byte_t *	pbtData = NULL;
     CODE:
+        // TODO - allow to specify an offset as well
         if (SvPOK(__data)) {
             if (items > 1) 
                 pbtData = (byte_t *)SvPV_nolen(__data);

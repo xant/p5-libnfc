@@ -2,7 +2,7 @@ package Libnfc::Tag;
 
 use strict;
 
-use Libnfc qw(nfc_initiator_select_tag nfc_initiator_deselect_tag);
+use Libnfc qw(nfc_configure nfc_initiator_select_tag nfc_initiator_deselect_tag);
 use Libnfc::Constants;
 use Data::Dumper;
 
@@ -22,6 +22,14 @@ sub new {
     $self->{_ti} = tag_info->new();
     $self->{_pti} = $self->{_ti}->_to_ptr;
     $self->{reader} = $reader;
+    nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 0);
+    # Let the reader only try once to find a tag
+    nfc_configure($reader->pdi, DCO_INFINITE_SELECT, 0);
+    nfc_configure($reader->pdi, DCO_HANDLE_CRC, 1);
+    nfc_configure($reader->pdi, DCO_HANDLE_PARITY, 1);
+    # Enable field so more power consuming cards can power themselves up
+    nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 1);
+
     if (!nfc_initiator_select_tag($reader->pdi, $type, 0, 0, $self->{_pti}))
     {
         warn("Error: no tag was found\n");
