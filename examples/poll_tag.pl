@@ -11,6 +11,12 @@ $::DEBUG = 0;
 $::quit = 0;
 $::polling_frequency = 500000; # microseconds
 
+sub graceful_quit {
+    $::quit = 1;
+};
+
+
+# MAIN #
 my $sigset = POSIX::SigSet->new(SIGINT, SIGQUIT);
 my $sigaction = POSIX::SigAction->new( \&graceful_quit, $sigset, &POSIX::SA_NOCLDSTOP );
 POSIX::sigaction(SIGINT, $sigaction);
@@ -28,6 +34,3 @@ while (!$::quit) {
 printf "Exiting \n";
 exit 0;
 
-sub graceful_quit {
-    $::quit = 1;
-};
