@@ -11,9 +11,13 @@ my %types = (
 );
 
 sub new {
-    my ($class, $reader, $type) = @_;
+    my ($class, $reader, $type, $blocking) = @_;
 
-    return unless ($reader and UNIVERSAL::isa($reader, "Libnfc::Reader"));
+    return unless ($reader 
+                    and ref($reader) 
+                    and UNIVERSAL::isa($reader, "Libnfc::Reader"));
+
+    $type = IM_ISO14443A_106 unless($type); #defaults to IM_ISO14443A_106
 
     my $self = {};
     $self->{debug} = $reader->{debug};
@@ -24,7 +28,7 @@ sub new {
     $self->{reader} = $reader;
     nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 0);
     # Let the reader only try once to find a tag
-    nfc_configure($reader->pdi, DCO_INFINITE_SELECT, 0);
+    nfc_configure($reader->pdi, DCO_INFINITE_SELECT, $blocking?1:0);
     nfc_configure($reader->pdi, DCO_HANDLE_CRC, 1);
     nfc_configure($reader->pdi, DCO_HANDLE_PARITY, 1);
     # Enable field so more power consuming cards can power themselves up
