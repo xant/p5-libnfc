@@ -22,7 +22,7 @@ while (!$::quit) {
         printf "Tag: %s\n", join ':', map { sprintf("%02x", $_) } @{$tag->uid};
         usleep $::polling_frequency while (!$::quit and $tag->ping);
     } else {
-        sleep $::polling_frequency;
+        usleep $::polling_frequency;
     }
 }
 undef($r); # ensure calling DESTROY
