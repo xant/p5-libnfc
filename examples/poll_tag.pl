@@ -26,6 +26,7 @@ while (!$::quit) {
     }
 }
 undef($r); # ensure calling DESTROY
+printf "Exiting \n";
 exit 0;
 
 sub graceful_quit {
