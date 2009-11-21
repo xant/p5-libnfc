@@ -25,7 +25,6 @@ while (!$::quit) {
         usleep $::polling_frequency;
     }
 }
-undef($r); # ensure calling DESTROY
 printf "Exiting \n";
 exit 0;
 
