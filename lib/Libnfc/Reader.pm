@@ -37,8 +37,7 @@ sub name {
 }
 
 sub connect {
-    my ($self, $type) = @_;
-    return Libnfc::Tag->new($self, $type);
+    return Libnfc::Tag->new(@_);
 }
 
 sub pdi {
@@ -95,10 +94,11 @@ returns the name of the current reader
 for ex.
 $name = $r->name
 
-=item connect ( TAGFAMILY )
+=item connect ( TAGFAMILY, BLOCKING )
 
 tries to connect a tag and returns a new ready-to-use Libnfc::Tag object 
-or undef if no tag is found
+or undef if no tag is found.
+If blocking is TRUE, connect won't return untill a tag is found in the field
 
 for ex.
 $tag = $r->connect( ISO14443A_106 )

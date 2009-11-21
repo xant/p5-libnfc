@@ -95,6 +95,12 @@ sub dump_info {
     }
 }
 
+sub ping {
+    my $self = shift;
+    # try reading sector 0 to see if the tag is alive
+    return $self->read_block(0)?1:0;
+}
+
 # XXX - doesn't work
 sub crc {
     my ($self, $data) = @_;
@@ -166,6 +172,10 @@ Returns the btsak byte (which is used to determine the tag type)
 =item dump_info ( )
 
 Prints out all know information on the hooked tag
+
+=item ping ( )
+
+Return 1 if the tag is still reachable , 0 otherwise
 
 =item crc ( )
 
