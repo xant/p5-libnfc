@@ -9,7 +9,7 @@ use POSIX;
 
 $::DEBUG = 0;
 $::quit = 0;
-$::polling_frequency = 0.5;
+$::polling_frequency = 500000; # microseconds
 
 my $sigset = POSIX::SigSet->new(SIGINT, SIGQUIT);
 my $sigaction = POSIX::SigAction->new( \&graceful_quit, $sigset, &POSIX::SA_NOCLDSTOP );
