@@ -36,7 +36,7 @@ sub new {
 
     if (!nfc_initiator_select_tag($reader->pdi, $type, 0, 0, $self->{_pti}))
     {
-        warn("Error: no tag was found\n");
+        $self->{_last_error} = "No tag was found";
         return undef;
     } else {
         print "Card:\t ".(split('::', $types{$type}))[2]." found\n" if $self->{debug};
