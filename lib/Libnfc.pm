@@ -51,7 +51,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -175,11 +175,11 @@ None by default.
   _Bool nfc_initiator_init(const dev_info* pdi)
   _Bool nfc_initiator_mifare_cmd(const dev_info* pdi, const mifare_cmd mc, const uint8_t ui8Block, mifare_param* pmp)
   _Bool nfc_initiator_select_tag(const dev_info* pdi, const init_modulation im, const byte_t* pbtInitData, const uint32_t uiInitDataLen, tag_info* pti)
-  $data = nfc_initiator_transceive_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
-  $data = nfc_initiator_transceive_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
-  _Bool nfc_target_init(const dev_info* pdi, byte_t* pbtRx, uint32_t* puiRxBits)
-  _Bool nfc_target_receive_bits(const dev_info* pdi)
-  _Bool nfc_target_receive_bytes(const dev_info* pdi)
+  byte_t *nfc_initiator_transceive_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
+  byte_t *nfc_initiator_transceive_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
+  byte_t *nfc_target_init(const dev_info* pdi)
+  byte_t *nfc_target_receive_bits(const dev_info* pdi)
+  byte_t *nfc_target_receive_bytes(const dev_info* pdi)
   _Bool nfc_target_send_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
   _Bool nfc_target_send_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
   byte_t oddparity(const byte_t bt)

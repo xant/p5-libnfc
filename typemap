@@ -21,6 +21,7 @@ mifare_cmd					T_PTROBJ
 mifare_param *					T_PTROBJ
 uint32_t					T_UV
 uint32_t *					T_PTROBJ
+size_t *					T_PTROBJ
 uint64_t					T_NV
 uint8_t						T_U_CHAR
 #############################################################################

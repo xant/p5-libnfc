@@ -8,6 +8,15 @@ This module aims to provide an high-level OO api to access mifare rfid tags
 You can obviously access the procedural api exposed by the C library 
 which has been fully mapped within the perl context
 
+NOTE : 
+    This module has been updated to work with the development
+    version of libnfc (the one on the svn repository).
+    The API has been slightly changed so if you need 
+    to build this module against the stable libnfc releases
+    (the tarball downloadable from www.libnfc.org)
+    you need to remove -DLIBNFC_DEV from Makefile.PL 
+
+
 INSTALLATION
 
 To install this module type the following:

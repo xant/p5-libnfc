@@ -9,9 +9,9 @@ WriteMakefile(
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Libnfc.pm', # retrieve abstract from module
        AUTHOR         => 'System Administrator <root@apple.com>') : ()),
-    LIBS              => ['-lnfc'], # e.g., '-lm'
-    DEFINE            => '', # e.g., '-DHAVE_SOMETHING'
-    INC               => '-I.', # e.g., '-I. -I/usr/include/other'
+    LIBS              => ['-L/usr/local/lib -lnfc'], # e.g., '-lm'
+    DEFINE            => '-DLIBNFC_DEV', # e.g., '-DHAVE_SOMETHING'
+    INC               => '-I. -I/usr/local/include', # e.g., '-I. -I/usr/include/other'
 	# Un-comment this if you add C files to link with later:
     # OBJECT            => '$(O_FILES)', # link all the C files too
 );
