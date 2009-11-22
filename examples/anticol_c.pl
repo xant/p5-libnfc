@@ -39,7 +39,7 @@ nfc_configure($pdi, DCO_HANDLE_CRC, 0);
 nfc_configure($pdi, DCO_HANDLE_PARITY, 1);
 
 # Enable field so more power consuming cards can power themselves up
-nfc_configure($pdi, ,DCO_ACTIVATE_FIELD, 1);
+nfc_configure($pdi, DCO_ACTIVATE_FIELD, 1);
 my $retry = 0;
 do {
     my $cmd = pack("C", MU_REQA);
