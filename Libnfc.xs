@@ -64,7 +64,11 @@ nfc_configure(pdi, dco, bEnable)
 dev_info *
 nfc_connect()
     CODE:
+#ifdef LIBNFC_DEV
         RETVAL=nfc_connect(NULL);
+#else
+        RETVAL=nfc_connect();
+#endif
     OUTPUT:
         RETVAL
 
