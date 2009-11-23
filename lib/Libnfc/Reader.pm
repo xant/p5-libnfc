@@ -25,9 +25,6 @@ sub init {
     return undef;
 }
 
-sub select {
-}
-
 sub name {
     my $self = shift;
     unless($self->{_name}) {
