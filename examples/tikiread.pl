@@ -5,6 +5,7 @@ use Libnfc::Reader;
 use Libnfc::Constants;
 
 my $DEBUG = 1;
+$Data::Dumper::Sortkeys++;
 
 my $r = Libnfc::Reader->new();
 if ($r->init()) {

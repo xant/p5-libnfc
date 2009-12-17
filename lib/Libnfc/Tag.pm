@@ -13,9 +13,10 @@ my %types = (
 sub new {
     my ($class, $reader, $type, $blocking) = @_;
 
-    return unless ($reader 
-                    and ref($reader) 
-                    and UNIVERSAL::isa($reader, "Libnfc::Reader"));
+    die "Invalid parameters to @{[ __PACKAGE__ ]} constructor"
+      unless ($reader 
+        and ref($reader) 
+        and UNIVERSAL::isa($reader, "Libnfc::Reader"));
 
     $type = IM_ISO14443A_106 unless($type); #defaults to IM_ISO14443A_106
 

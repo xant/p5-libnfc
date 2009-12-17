@@ -4,12 +4,7 @@
 
 #include "ppport.h"
 
-#ifdef LIBNFC_DEV
-#include <nfc/nfc.h>
-#else
 #include <libnfc/libnfc.h>
-#endif
-
 
 /* Global Data */
 
@@ -193,7 +188,7 @@ nfc_target_receive_bits(pdi)
 #endif
     CODE:
         pbtRx = malloc(MAX_FRAME_LEN);
-        if (nfc_nfc_target_receive_bits(pdi, pbtRx, &uiRxBits, &btRxPar))
+        if (nfc_target_receive_bits(pdi, pbtRx, &uiRxBits, &btRxPar))
             sv = newSVpv((char *)pbtRx, uiRxBits/8+1);
         else 
             sv = newSV(0);
