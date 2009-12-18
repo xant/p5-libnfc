@@ -4,7 +4,11 @@
 
 #include "ppport.h"
 
+#ifdef LIBNFC_DEV
+#include <nfc/nfc.h>
+#else
 #include <libnfc/libnfc.h>
+#endif
 
 /* Global Data */
 
