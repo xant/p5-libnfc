@@ -77,7 +77,8 @@ if ($r->init()) {
         } else {
             warn $tag->error."\n";
             if ($tag->type eq "4K") {
-                print DUMP "" x 16
+                print DUMP pack("a16", "");
+
             }
         }
     }

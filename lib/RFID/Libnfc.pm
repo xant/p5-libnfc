@@ -109,7 +109,7 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
 
   $uid = $tag->uid;
 
-===============================================================================
+  ===============================================================================
 
   Procedural API: (equivalend of C api)
 

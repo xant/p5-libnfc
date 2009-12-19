@@ -7,3 +7,6 @@ Revision history for Perl extension Libnfc.
         - support newer libnfc api (svn trunk)
         - renamed from Libnfc to RFID::Libnfc
         - cleanings prior uploading to CPAN
+0.03  Sat Dec 19 20:37:16 CET 2009
+        - autodetect libnfc install location
+          (and if stable or development version)
