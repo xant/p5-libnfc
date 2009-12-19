@@ -1,5 +1,30 @@
+use strict;
 use 5.008008;
 use ExtUtils::MakeMaker;
+my $INC = "-I. ";
+my $LIBS = "-lnfc ";
+my $DEFINE = "";
+
+# detect libnfc (libnfc-stable installs its main header in <PREFIX>/include/libnfc/libnfc.h
+# while newer versions of the library (trunk on svn) uses <PREFIX>/include/nfc/nfc.h
+if (-d "/usr/include/libnfc") {
+    $DEFINE .= "-DLIBNFC_DEV";
+} elsif (-d "/usr/local/include/nfc") {
+    $INC .= "-I/usr/local/include";
+    $LIBS .= "-L/usr/local/lib";
+    $DEFINE .= "-DLIBNFC_DEV";
+} elsif (-d "/usr/local/include/libnfc") {
+    $INC .= "-I/usr/local/include";
+    $LIBS .= "-L/usr/local/lib";
+} elsif (-d "/opt/local/include/nfc") {
+    $INC .= "-I/opt/local/include";
+    $LIBS .= "-L/opt/local/lib";
+    $DEFINE .= "-DLIBNFC_DEV";
+} elsif (-d "/opt/local/include/libnfc") {
+    $INC .= "-I/opt/local/include";
+    $LIBS .= "-L/opt/local/lib";
+}
+
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
@@ -8,10 +33,10 @@ WriteMakefile(
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/RFID/Libnfc.pm', # retrieve abstract from module
-       AUTHOR         => 'System Administrator <root@apple.com>') : ()),
-    LIBS              => ['-L/usr/local/lib -lnfc'], # e.g., '-lm'
-    DEFINE            => '-DLIBNFC_DEV', # e.g., '-DHAVE_SOMETHING'
-    INC               => '-I. -I/usr/local/include', # e.g., '-I. -I/usr/include/other'
+       AUTHOR         => 'Xant <xant@cpan.org>') : ()),
+    LIBS              => [$LIBS], # e.g., '-lm'
+    DEFINE            => $DEFINE,
+    INC               => $INC,
 	# Un-comment this if you add C files to link with later:
     # OBJECT            => '$(O_FILES)', # link all the C files too
 );
