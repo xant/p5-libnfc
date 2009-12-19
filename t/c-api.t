@@ -7,21 +7,21 @@
 
 use Test::More qw(no_plan);
 use Data::Dumper;
-BEGIN { use_ok('Libnfc') };
+BEGIN { use_ok('RFID::Libnfc') };
 
 #########################
 
 # Insert your test code below, the Test::More module is use()ed here so read
 # its man page ( perldoc Test::More ) for help writing this test script.
 
-use Libnfc ':all';
-use Libnfc::Constants ':all';
+use RFID::Libnfc ':all';
+use RFID::Libnfc::Constants ':all';
 
 
 my $pdi = nfc_connect();
-if ($pdi == 0) { 
-    print "No device!\n"; 
-    exit -1;
+if (!$pdi) { 
+    print "No device! Skipping tests\n"; 
+    exit 0;
 }
 nfc_initiator_init($pdi); 
 # Drop the field for a while

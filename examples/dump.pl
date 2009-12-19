@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 use Data::Dumper;
-use Libnfc::Reader;
-use Libnfc::Constants;
+use RFID::Libnfc::Reader;
+use RFID::Libnfc::Constants;
 
 my $outfile = "./dump.out";
 my $keyfile = "/Users/xant/mykeys";
@@ -27,7 +27,7 @@ sub parse_cmdline {
 }
 
 parse_cmdline();
-my $r = Libnfc::Reader->new(debug => 0);
+my $r = RFID::Libnfc::Reader->new(debug => 0);
 if ($r->init()) {
     printf ("Reader: %s\n", $r->name);
     my $tag = $r->connect(IM_ISO14443A_106);

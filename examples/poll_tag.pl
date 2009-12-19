@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 use strict;
-use Libnfc::Reader;
-use Libnfc::Constants;
+use RFID::Libnfc::Reader;
+use RFID::Libnfc::Constants;
 use Data::Dumper;
 use Time::HiRes qw(usleep);
 use POSIX;
@@ -22,7 +22,7 @@ my $sigaction = POSIX::SigAction->new( \&graceful_quit, $sigset, &POSIX::SA_NOCL
 POSIX::sigaction(SIGINT, $sigaction);
 POSIX::sigaction(SIGQUIT, $sigaction);
 
-my $r = Libnfc::Reader->new( debug => $::DEBUG ) or die "Can't connect to a reader";
+my $r = RFID::Libnfc::Reader->new( debug => $::DEBUG ) or die "Can't connect to a reader";
 while (!$::quit) {
     if (my $tag = $r->connect) {
         printf "Tag: %s\n", join ':', map { sprintf("%02x", $_) } @{$tag->uid};

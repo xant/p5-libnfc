@@ -3,8 +3,8 @@
 
 use strict;
 use Data::Dumper;
-use Libnfc qw(:all);
-use Libnfc::Constants;
+use RFID::Libnfc qw(:all);
+use RFID::Libnfc::Constants;
 
 sub transceive_bytes {
     my ($pdi, $cmd, $len) = @_;

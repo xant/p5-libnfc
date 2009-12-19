@@ -2,10 +2,10 @@
 
 use strict;
 use Data::Dumper;
-use Libnfc::Reader;
-use Libnfc::Constants;
+use RFID::Libnfc::Reader;
+use RFID::Libnfc::Constants;
 
-my $r = Libnfc::Reader->new();
+my $r = RFID::Libnfc::Reader->new();
 die "Can't connect to reader" unless $r and $r->init;
 
 die "no input" unless $ARGV[0];

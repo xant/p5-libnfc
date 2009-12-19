@@ -3,11 +3,11 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    NAME              => 'Libnfc',
-    VERSION_FROM      => 'lib/Libnfc.pm', # finds $VERSION
+    NAME              => 'RFID::Libnfc',
+    VERSION_FROM      => 'lib/RFID/Libnfc.pm', # finds $VERSION
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/Libnfc.pm', # retrieve abstract from module
+      (ABSTRACT_FROM  => 'lib/RFID/Libnfc.pm', # retrieve abstract from module
        AUTHOR         => 'System Administrator <root@apple.com>') : ()),
     LIBS              => ['-L/usr/local/lib -lnfc'], # e.g., '-lm'
     DEFINE            => '-DLIBNFC_DEV', # e.g., '-DHAVE_SOMETHING'
@@ -22,7 +22,7 @@ if  (eval {require ExtUtils::Constant; 1}) {
   # changes.
   my @names = (qw());
   ExtUtils::Constant::WriteConstants(
-                                     NAME         => 'Libnfc',
+                                     NAME         => 'RIFD::Libnfc',
                                      NAMES        => \@names,
                                      DEFAULT_TYPE => 'IV',
                                      C_FILE       => 'const-c.inc',

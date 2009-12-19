@@ -20,14 +20,12 @@ constant(sv)
            Second, if present, is found value */
         switch (type) {
         case PERL_constant_NOTFOUND:
-          sv =
-	    sv_2mortal(newSVpvf("%s is not a valid Libnfc macro", s));
+          sv = sv_2mortal(newSVpvf("%s is not a valid RIFD::Libnfc macro", s));
           PUSHs(sv);
           break;
         case PERL_constant_NOTDEF:
           sv = sv_2mortal(newSVpvf(
-	    "Your vendor has not defined Libnfc macro %s, used",
-				   s));
+	    "Your vendor has not defined RIFD::Libnfc macro %s, used", s));
           PUSHs(sv);
           break;
 	/* Uncomment this if you need to return IVs
@@ -83,7 +81,7 @@ constant(sv)
           break; */
         default:
           sv = sv_2mortal(newSVpvf(
-	    "Unexpected return type %d while processing Libnfc macro %s, used",
+	    "Unexpected return type %d while processing RIFD::Libnfc macro %s, used",
                type, s));
           PUSHs(sv);
         }

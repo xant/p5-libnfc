@@ -2,9 +2,9 @@
 
 use strict;
 use Data::Dumper;
-use Libnfc::Reader;
-use Libnfc::Constants;
-use Libnfc qw(print_hex);
+use RFID::Libnfc::Reader;
+use RFID::Libnfc::Constants;
+use RFID::Libnfc qw(print_hex);
 
 my $outfile = "./dump.out";
 my $keyfile = "/Users/xant/mykeys";
@@ -14,7 +14,7 @@ sub usage {
     exit -1;
 }
 
-my $r = Libnfc::Reader->new(debug => 1);
+my $r = RFID::Libnfc::Reader->new(debug => 1);
 if ($r->init()) {
     printf ("Reader: %s\n", $r->name);
     my $tag = $r->connect(IM_ISO14443A_106);

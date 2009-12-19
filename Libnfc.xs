@@ -12,7 +12,7 @@
 
 /* Global Data */
 
-#define MY_CXT_KEY "Libnfc::_guts" XS_VERSION
+#define MY_CXT_KEY "RFID::Libnfc::_guts" XS_VERSION
 typedef dev_info * dev_infoPtr;
 
 typedef struct {
@@ -24,7 +24,7 @@ START_MY_CXT
 
 #include "const-c.inc"
 
-MODULE = Libnfc                PACKAGE = Libnfc                
+MODULE = RFID::Libnfc                PACKAGE = RFID::Libnfc                
 
 INCLUDE: const-xs.inc
 
@@ -280,7 +280,7 @@ uint64_t
 swap_endian64(pui64)
         void *        pui64
 
-MODULE = Libnfc        PACKAGE = tag_info
+MODULE = RFID::Libnfc        PACKAGE = tag_info
 
 tag_info *
 _to_ptr(THIS)
@@ -309,7 +309,7 @@ new(CLASS)
     OUTPUT:
     RETVAL
 
-MODULE = Libnfc        PACKAGE = tag_infoPtr
+MODULE = RFID::Libnfc        PACKAGE = tag_infoPtr
 
 SV *
 abtAtqa(THIS, __value = NO_INIT)
@@ -391,7 +391,7 @@ abtAts(THIS, __value = NO_INIT)
     OUTPUT:
     RETVAL
 
-MODULE = Libnfc        PACKAGE = dev_info
+MODULE = RFID::Libnfc        PACKAGE = dev_info
 
 dev_info *
 _to_ptr(THIS)
@@ -420,7 +420,7 @@ new(CLASS)
     OUTPUT:
     RETVAL
 
-MODULE = Libnfc        PACKAGE = dev_infoPtr
+MODULE = RFID::Libnfc        PACKAGE = dev_infoPtr
 
 char *
 acName(THIS, __value = NO_INIT)
@@ -497,7 +497,7 @@ ui8TxBits(THIS, __value = NO_INIT)
     OUTPUT:
     RETVAL
 
-MODULE = Libnfc        PACKAGE = mifare_param
+MODULE = RFID::Libnfc        PACKAGE = mifare_param
 
 mifare_param *
 _to_ptr(THIS)
@@ -526,7 +526,7 @@ new(CLASS)
     OUTPUT:
     RETVAL
 
-MODULE = Libnfc        PACKAGE = mifare_paramPtr
+MODULE = RFID::Libnfc        PACKAGE = mifare_paramPtr
 
 char *
 mpa(THIS, __key = NO_INIT, __uid = NO_INIT)

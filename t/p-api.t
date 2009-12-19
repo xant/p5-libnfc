@@ -1,5 +1,5 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl Libnfc.t'
+# Before `make install' is performed this script should be runnable with `make
+# test'. After `make install' it should work as `perl Libnfc.t'
 
 #########################
 
@@ -7,15 +7,16 @@
 
 use Test::More qw(no_plan);
 use Data::Dumper;
-BEGIN { use_ok('Libnfc::Reader') };
-use Libnfc::Constants ':all';
+BEGIN { use_ok('RFID::Libnfc::Reader') };
+use RFID::Libnfc::Constants ':all';
 
 #########################
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
 
-my $r = Libnfc::Reader->new();
+my $r;
+eval {
+    $r = RFID::Libnfc::Reader->new();
+} or warn "No device! Skipping tests\n" and exit; 
 
 if (ok ($r->init())) {
     printf ("Reader: %s\n", $r->name);
