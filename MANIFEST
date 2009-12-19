@@ -9,7 +9,7 @@ t/c-api.t
 t/p-api.t
 fallback/const-c.inc
 fallback/const-xs.inc
-lib/Libnfc/Constants.pm
+lib/RFID/Libnfc/Constants.pm
 lib/RFID/Libnfc/Reader.pm
 lib/RFID/Libnfc/Tag/ISO14443A_106.pm
 lib/RFID/Libnfc/Tag/ISO14443A_106/4K.pm
