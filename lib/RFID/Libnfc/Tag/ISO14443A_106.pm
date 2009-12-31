@@ -11,7 +11,7 @@ sub init {
     return $self;
 }
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub type {
     my $self = shift;
@@ -147,6 +147,8 @@ None by default.
 
 =head1 METHODS
 
+=over
+
 =item type
 
 returns the specific tag type actually hooked
@@ -187,6 +189,8 @@ Compute the crc as required by ISO14443A_106 standard
 
 returns the underlying reader descriptor (to be used with the RFID::Libnfc procedural api)
 $pdi = $r->pdi
+
+=back
 
 =head1 SEE ALSO
 

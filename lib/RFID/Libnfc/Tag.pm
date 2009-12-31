@@ -6,7 +6,7 @@ use RFID::Libnfc qw(nfc_configure nfc_initiator_select_tag nfc_initiator_deselec
 use RFID::Libnfc::Constants;
 use Data::Dumper;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 my %types = (
     scalar(IM_ISO14443A_106) => 'RFID::Libnfc::Tag::ISO14443A_106'
@@ -50,7 +50,7 @@ sub new {
         if ($productType && eval "require $types{$type}::$productType;") {
             bless $self, "$types{$type}::$productType";
         } else {
-            warn "Unsupported product type $productType";
+            warn "Unsupported product type $types{$type}::$productType";
             return undef;
         }
     } else {
@@ -101,6 +101,7 @@ RFID::Libnfc::Tag - base class for specific tag implementations
 =head1 SYNOPSIS
 
   use RFID::Libnfc;
+  use RFID::Constants;
 
   $tag = $r->connectTag(IM_ISO14443A_106);
 
@@ -116,6 +117,8 @@ None by default.
 
 =head1 METHODS
 
+=over
+
 =item reader
 
 returns the current reader object ( RFID::Libnfc::Reader )
@@ -125,12 +128,18 @@ returns the current reader object ( RFID::Libnfc::Reader )
 returns the underlying reader descriptor (to be used with the RFID::Libnfc procedural api)
 $pdi = $r->pdi
 
+=back
+
 =head1 SEE ALSO
 
 RFID::Libnfc::Tag::ISO14443A_106::ULTRA RFID::Libnfc::Tag::ISO14443A_106::4K
 RFID::Libnfc::Tag::ISO14443A_106 RFID::Libnfc::Constants RFID::Libnfc 
 
-< check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
+** 
+  check also documentation for libnfc c library 
+  [ http://www.libnfc.org/documentation/introduction ] 
+
+**
 
 =head1 AUTHOR
 
@@ -143,6 +152,5 @@ Copyright (C) 2009 by xant <xant@xant.net>
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut

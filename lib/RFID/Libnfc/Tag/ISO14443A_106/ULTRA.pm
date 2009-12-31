@@ -1,12 +1,12 @@
-package RIFD::Libnfc::Tag::ISO14443A_106::ULTRA;
+package RFID::Libnfc::Tag::ISO14443A_106::ULTRA;
 
 use strict;
 
-use base qw(RIFD::Libnfc::Tag::ISO14443A_106);
-use RIFD::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc print_hex);
-use RIFD::Libnfc::Constants;
+use base qw(RFID::Libnfc::Tag::ISO14443A_106);
+use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc print_hex);
+use RFID::Libnfc::Constants;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub read_block {
     my ($self, $block, $noauth, $truncate) = @_;
@@ -200,12 +200,12 @@ sub select {
 __END__
 =head1 NAME
 
-RIFD::Libnfc::Tag::ISO14443A_106::ULTRA 
+RFID::Libnfc::Tag::ISO14443A_106::ULTRA 
 Specific implementation for mifare ultralight tags
 
 =head1 SYNOPSIS
 
-  use RIFD::Libnfc;
+  use RFID::Libnfc;
 
   $tag = $r->connectTag(IM_ISO14443A_106);
 
@@ -224,6 +224,8 @@ None by default.
 =head2 Exportable functions
 
 =head1 METHODS
+
+=over
 
 =item read_block ( $block )
 
@@ -273,12 +275,19 @@ Returns a representation of the aclbits.
 
 implements the 2-level cascade selection process
 
+=back
+
 =head1 SEE ALSO
 
-RIFD::Libnfc::Tag::ISO14443A_106::ULTRA RIFD::Libnfc::Tag::ISO14443A_106::4K
-RIFD::Libnfc::Tag::ISO14443A_106 RIFD::Libnfc::Constants RIFD::Libnfc 
+RFID::Libnfc::Tag::ISO14443A_106::ULTRA RFID::Libnfc::Tag::ISO14443A_106::4K
+RFID::Libnfc::Tag::ISO14443A_106 RFID::Libnfc::Constants RFID::Libnfc 
 
-< check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
+**
+
+  check also documentation for libnfc c library 
+  [ http://www.libnfc.org/documentation/introduction ] 
+
+**
 
 =head1 AUTHOR
 

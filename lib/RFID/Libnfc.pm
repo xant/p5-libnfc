@@ -11,7 +11,7 @@ use RFID::Libnfc::Constants;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 # Items to export into callers namespace by default. Note: do not export
 # names by default without a very good reason. Use EXPORT_OK instead.
@@ -22,9 +22,6 @@ our $VERSION = '0.03';
 # will save memory.
 our %EXPORT_TAGS = ( 'all' => [ qw(
 	append_iso14443a_crc
-	mirror
-	mirror32
-	mirror64
 	nfc_configure
 	nfc_connect
 	nfc_disconnect
@@ -92,22 +89,25 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
 
   ObjectOriented API: 
 
-  use RFID::Libnfc;
+    use RFID::Libnfc;
+    use RFID::Libnfc::Constants;
 
-  $r = RFID::Libnfc::Reader->new();
-  if ($r->init()) {
-    printf ("Reader: %s\n", $r->name);
-  }
+    $r = RFID::Libnfc::Reader->new();
+    if ($r->init()) {
+        printf ("Reader: %s\n", $r->name);
+    }
 
-  $tag = $r->connectTag(IM_ISO14443A_106);
-  $tag->dumpInfo
+    $tag->load_keys($keyfile);
 
-  $block_data = $tag->read_block(240);
-  $entire_sector = $tag->read_sector(35);
+    $tag = $r->connect(IM_ISO14443A_106);
+    $tag->dumpInfo
 
-  $tag->write(240, $data); 
+    $block_data = $tag->read_block(240);
+    $entire_sector = $tag->read_sector(35);
 
-  $uid = $tag->uid;
+    $tag->write(240, $data); 
+
+    $uid = $tag->uid;
 
   ===============================================================================
 
@@ -147,8 +147,6 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     # disconnects the tag
     nfc_disconnect($pdi);
 
-
-
   
 =head1 DESCRIPTION
 
@@ -161,33 +159,28 @@ None by default.
 
 =head2 Exportable functions
 
-  void append_iso14443a_crc(byte_t* pbtData, uint32_t uiLen)
-  byte_t mirror(byte_t bt)
-  uint32_t mirror32(uint32_t ui32Bits)
-  uint64_t mirror64(uint64_t ui64Bits)
-  void mirror_byte_ts(byte_t *pbts, uint32_t uiLen)
-  _Bool nfc_configure(dev_info* pdi, const dev_config_option dco, const _Bool bEnable)
-  dev_info* nfc_connect(void)
-  void nfc_disconnect(dev_info* pdi)
-  _Bool nfc_initiator_deselect_tag(const dev_info* pdi)
-  _Bool nfc_initiator_init(const dev_info* pdi)
-  _Bool nfc_initiator_mifare_cmd(const dev_info* pdi, const mifare_cmd mc, const uint8_t ui8Block, mifare_param* pmp)
-  _Bool nfc_initiator_select_tag(const dev_info* pdi, const init_modulation im, const byte_t* pbtInitData, const uint32_t uiInitDataLen, tag_info* pti)
-  byte_t *nfc_initiator_transceive_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
-  byte_t *nfc_initiator_transceive_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
-  byte_t *nfc_target_init(const dev_info* pdi)
-  byte_t *nfc_target_receive_bits(const dev_info* pdi)
-  byte_t *nfc_target_receive_bytes(const dev_info* pdi)
-  _Bool nfc_target_send_bits(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxBits, const byte_t* pbtTxPar)
-  _Bool nfc_target_send_bytes(const dev_info* pdi, const byte_t* pbtTx, const uint32_t uiTxLen)
-  byte_t oddparity(const byte_t bt)
-  void oddparity_byte_ts(const byte_t* pbtData, const uint32_t uiLen, byte_t* pbtPar)
-  void print_hex(const byte_t* pbtData [ uint32_t uiLen ])
-  void print_hex_bits(const byte_t* pbtData, const uint32_t uiBits)
-  void print_hex_par(const byte_t* pbtData, const uint32_t uiBits, const byte_t* pbtDataPar)
-  uint32_t swap_endian32(const void* pui32)
-  uint64_t swap_endian64(const void* pui64)
-
+  append_iso14443a_crc($pbtData, $uiLen)
+  $pci = nfc_connect()
+  nfc_disconnect($pdi)
+  $bool = nfc_configure($pdi, $dco, $bEnable)
+  $bool = nfc_initiator_deselect_tag($pdi)
+  $bool = nfc_initiator_init($pdi)
+  $bool = nfc_initiator_mifare_cmd($pdi, $mifare_cmd, $ui8Block, $mifare_param_ref)
+  $bool = nfc_initiator_select_tag($pdi, $im, $pbtInitData, $uiInitDataLen, $pti)
+  $data = nfc_initiator_transceive_bits($pdi, $pbtTx, $uiTxBits, $pbtTxPar)
+  $data = nfc_initiator_transceive_bytes($pdi, $pbtTx, $uiTxLen)
+  $data = nfc_target_init($pdi)
+  $data = nfc_target_receive_bits($pdi)
+  $data = nfc_target_receive_bytes($pdi)
+  $bool = nfc_target_send_bits($pdi, $pbtTx, $uiTxBits, $pbtTxPar)
+  $bool = nfc_target_send_bytes($pdi, $pbtTx, $uiTxLen)
+  $byte = oddparity($bt)
+  oddparity_byte_ts($pbtData, $uiLen, $pbtPar)
+  print_hex($pbtData, [ $uiLen ])
+  print_hex_bits($pbtData, $uiBits)
+  print_hex_par($pbtData, $uiBits, $pbtDataPar)
+  swap_endian32($pui32)
+  swap_endian64($pui64)
 
 
 =head1 SEE ALSO
@@ -202,7 +195,7 @@ xant
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by xant <xant@xant.net>
+Copyright (C) 2009 by xant <xant@cpan.org>
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
