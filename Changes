@@ -10,3 +10,5 @@ Revision history for Perl extension Libnfc.
 0.03  Sat Dec 19 20:37:16 CET 2009
         - autodetect libnfc install location
           (and if stable or development version)
+0.04  Thu Dec 31 13:19:42 CET 2009
+        - bugfixes due to package-name changes
