@@ -8,6 +8,8 @@ use RFID::Libnfc::Constants;
 
 our $VERSION = '0.04';
 
+my $ALLOW_LOCKINGBITS_CHANGES = 0;
+
 sub read_block {
     my ($self, $block, $noauth, $truncate) = @_;
     my $cmd = pack("C4", MU_READ, $block);
@@ -40,7 +42,7 @@ sub write_block {
     my ($self, $block, $data) = @_;
 
     return undef unless $data;
-    if ($block > 3) { # data block
+    if ($block > 3 or $ALLOW_LOCKINGBITS_CHANGES) { # data block
         my $acl = $self->acl;
         return undef unless $acl;
         if ($acl->{plbits}->{$block}) {
@@ -61,6 +63,10 @@ sub write_block {
                 printf("W: ");
                 print_hex($data);
             }
+            if ($block == 2) {
+                $self->{_last_error} = "Error committing blocking-bits changes" and return 0 
+                    unless (my $resp = nfc_initiator_transceive_bits($self->reader->pdi, pack("C", MU_WUPA), 7))
+            }
             return 1;
         } else {
             $self->{_last_error} = "Error trying to write on block $block";
@@ -69,6 +75,11 @@ sub write_block {
         $self->{_last_error} = "You are actually not allowed to write on blocks 0, 1 and 2";
     }
     return undef;
+}
+
+sub allow_lockingbits_changes {
+    my ($self, $bool) = @_;
+    $ALLOW_LOCKINGBITS_CHANGES = $bool;
 }
 
 sub read_sector {
