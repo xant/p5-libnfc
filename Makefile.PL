@@ -23,6 +23,8 @@ if (-d "/usr/include/libnfc") {
 } elsif (-d "/opt/local/include/libnfc") {
     $INC .= "-I/opt/local/include";
     $LIBS .= "-L/opt/local/lib";
+} else {
+    die "No libnfc installed"
 }
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence

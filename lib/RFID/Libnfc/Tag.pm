@@ -71,6 +71,7 @@ sub reader {
     my $self = shift;
     return $self->{reader};
 }
+
 sub AUTOLOAD {
     our $AUTOLOAD;
     warn "$AUTOLOAD not implemented \n";
