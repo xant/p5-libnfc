@@ -1,5 +1,11 @@
 #!/usr/bin/perl
 
+=head1 usage
+
+  $0 $keyfile $blocknum
+
+=cut
+
 use strict;
 use Data::Dumper;
 use RFID::Libnfc::Reader;
@@ -12,6 +18,10 @@ my $keyfile = "/Users/xant/mykeys";
 sub usage {
     printf("%s block_num\nWill fetch 16 bytes from stdin", $0);
     exit -1;
+}
+
+if( @ARGV ){
+    $keyfile = shift;
 }
 
 my $r = RFID::Libnfc::Reader->new(debug => 1);
@@ -48,19 +58,19 @@ if ($r->init()) {
     # );
     # $tag->set_keys(@keys);
 
-    $tag->select;
+    $tag->select if $tag->can('select');
 
     my $block = $ARGV[0];
     die "bad block num $block. Must be between 0 and ". $tag->blocks
         unless ($block =~ /^\d+$/ and $block < $tag->blocks);
     my $sector = $tag->block2sector($block);
     my $acl = $tag->acl($sector);
-    warn Data::Dumper->Dump([$acl], ["ACL"]);
+    # warn Data::Dumper->Dump([$acl], ["ACL"]);
     my $data = $tag->read_block($block);
-    print "Old data: " and print_hex($data, length($data));
+    # print "Old data: " and print_hex($data, length($data));
     $tag->write_block($block, pack("a16", $input));
-    my $data = $tag->read_block($block);
-    print "New data: " and print_hex($data, length($data));
+    # my $data = $tag->read_block($block);
+    # print "New data: " and print_hex($data, length($data));
 
 }
 
