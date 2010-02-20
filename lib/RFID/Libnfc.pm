@@ -11,7 +11,7 @@ use RFID::Libnfc::Constants;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 # Items to export into callers namespace by default. Note: do not export
 # names by default without a very good reason. Use EXPORT_OK instead.

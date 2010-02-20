@@ -19,4 +19,6 @@ Revision history for Perl extension Libnfc.
           (hopefully their api should be stable now)
 0.06  Sat Feb 20 11:12:55 CET 2010
         - make it build properly where defines.h is not installed
-         
+0.07  Sat Feb 20 13:03:19 CET 2010
+        - fixed a bug in 4K->write_sector() introduced when switching
+          from unpack("C", $data) to split(//, $data)

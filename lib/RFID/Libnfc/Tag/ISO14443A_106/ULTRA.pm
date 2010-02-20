@@ -6,7 +6,7 @@ use base qw(RFID::Libnfc::Tag::ISO14443A_106);
 use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc print_hex);
 use RFID::Libnfc::Constants;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 my $ALLOW_LOCKINGBITS_CHANGES = 0;
 
