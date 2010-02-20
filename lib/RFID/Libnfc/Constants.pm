@@ -2,7 +2,7 @@ package RFID::Libnfc::Constants;
 
 use Exporter;
 our @ISA = qw( Exporter );
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 BEGIN {    # must be defined at compile time
         %constants = (
