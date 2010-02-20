@@ -68,12 +68,13 @@ if ($r->init()) {
             # so we can skip next 3 blocks
             $i += 3 if ($tag->type eq "ULTRA");
             print DUMP $data;
-            my $len = length($data);
-            my @databytes = unpack("C".$len, $data);
+            my @databytes = split(//, $data);
+            my $len = scalar(@databytes);
             # let's format the output.
             # unprintable chars will be outputted as a '.' (like any other hexdumper)
-            my @chars = map { ($_ > 31 and $_ < 127) ? $_ : ord('.') } @databytes; 
-            printf ("%03d: [" . "%02x" x $len . "]\t" . "%c" x $len . "\n", $i, @databytes, @chars);
+            my @chars = map { (ord($_) > 31 and ord($_) < 127) ? $_ : '.' } @databytes; 
+            my @bytes = map { ord($_) } @databytes; 
+            printf ("%03d: [" . "%02x" x $len . "]\t" . "%s" x $len . "\n", $i, @bytes, @chars);
         } else {
             warn $tag->error."\n";
             if ($tag->type eq "4K") {

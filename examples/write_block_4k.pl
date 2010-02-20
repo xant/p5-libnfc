@@ -68,7 +68,7 @@ if ($r->init()) {
     # warn Data::Dumper->Dump([$acl], ["ACL"]);
     my $data = $tag->read_block($block);
     # print "Old data: " and print_hex($data, length($data));
-    $tag->write_block($block, pack("a16", $input));
+    $tag->write_block($block, $input));
     # my $data = $tag->read_block($block);
     # print "New data: " and print_hex($data, length($data));
 

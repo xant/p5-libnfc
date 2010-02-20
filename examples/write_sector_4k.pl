@@ -67,7 +67,7 @@ if ($r->init()) {
         open (IN, $infile) or die "Can't open file $infile: $!";
         my $indata;
         die "Can't read enough data " unless (read(IN, $indata, 16*15) == 16*15);
-        $tag->write_sector($sector, pack("a240", $indata));
+        $tag->write_sector($sector, $indata);
         $data = $tag->read_sector($sector);
         my $len = length($data);
         my @databytes = unpack("C".$len, $data);

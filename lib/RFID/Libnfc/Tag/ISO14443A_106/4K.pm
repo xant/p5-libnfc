@@ -152,7 +152,7 @@ sub write_sector {
     my $firstblock = $tblock - $nblocks + 1;
     { 
         use bytes;
-        my @databytes = split(//, $data);
+        my @databytes = split(//, pack("a240", $data));
         for (my $block = $firstblock; $block < $tblock; $block++) {
             my @blockbytes = splice(@databytes, 0, 16);
             if (@blockbytes) {
