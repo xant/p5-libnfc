@@ -5,7 +5,10 @@
 #include "ppport.h"
 
 #include <nfc/nfc.h>
-#include <nfc/defines.h>
+
+#ifndef MAX_FRAME_LEN
+#define MAX_FRAME_LEN 264
+#endif
 
 /* Global Data */
 

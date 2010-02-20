@@ -17,3 +17,6 @@ Revision history for Perl extension Libnfc.
           (some internal structures have been renamed)
         - lost support for older versions of the library
           (hopefully their api should be stable now)
+0.06  Sat Feb 20 11:12:55 CET 2010
+        - make it build properly where defines.h is not installed
+         
