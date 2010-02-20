@@ -12,3 +12,4 @@ pm_to_blib
 Libnfc.c
 Libnfc.o
 Libnfc.bs
+*Libnfc*.tar.gz
