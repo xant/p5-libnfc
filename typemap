@@ -2,21 +2,20 @@ _Bool						T_IV
 byte_t						T_U_CHAR
 byte_t *					T_PV
 const byte_t *					T_PV
-const dev_info *				T_PTROBJ
+const nfc_device_t *				T_PTROBJ
 void *                                          T_PTROBJ
 const void *					T_PTROBJ
-dev_spec                                        T_PTROBJ
-dev_config_option				T_U_CHAR
+nfc_device_spec_t                               T_PTROBJ
+nfc_device_option_t				T_U_CHAR
 mifare_param                                    T_OPAQUE_STRUCT
-tag_info                                        T_OPAQUE_STRUCT
-tag_info *					T_PTROBJ
-tag_infoPtr					T_PTROBJ
-chip_type					T_U_CHAR
-dev_info                                        T_OPAQUE_STRUCT
-dev_info *					T_PTROBJ
-dev_infoPtr					T_PTROBJ
-chip_type					T_U_CHAR
-init_modulation					T_UV
+nfc_target_info_t                               T_OPAQUE_STRUCT
+nfc_target_info_t *				T_PTROBJ
+nfc_target_info_tPtr				T_PTROBJ
+nfc_device_t                                    T_OPAQUE_STRUCT
+nfc_device_t *                                  T_PTROBJ
+nfc_device_tPtr                                 T_PTROBJ
+nfc_chip_t					T_U_CHAR
+nfc_modulation_t				T_UV
 mifare_cmd					T_PTROBJ
 mifare_param *					T_PTROBJ
 uint32_t					T_UV

@@ -36,7 +36,7 @@ nfc_configure($pdi, DCO_ACTIVATE_FIELD, 1);
 printf("Reader:\t%s\n", $pdi->acName);
 
 # Try to find a MIFARE Classic tag
-my $ti = tag_info->new();
+my $ti = nfc_target_info_t->new();
 my $pti = $ti->_to_ptr;
 if (!nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti))
 {

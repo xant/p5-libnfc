@@ -26,7 +26,7 @@ sub new {
     $self->{debug} = $reader->{debug};
     # Try to find the requested tag type
     $self->{_last_error} = "";
-    $self->{_ti} = tag_info->new();
+    $self->{_ti} = nfc_target_info_t->new();
     $self->{_pti} = $self->{_ti}->_to_ptr;
     $self->{reader} = $reader;
     nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 0);

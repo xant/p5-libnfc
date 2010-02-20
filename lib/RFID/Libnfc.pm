@@ -135,7 +135,7 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     printf("Reader:\t%s\n", $pdi->acName);
 
     # Try to find a MIFARE Classic tag
-    my $ti = tag_info->new();
+    my $ti = nfc_target_info_t->new();
     my $pti = $ti->_to_ptr;
     my $bool = nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti);
 

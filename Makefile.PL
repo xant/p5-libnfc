@@ -7,22 +7,18 @@ my $DEFINE = "";
 
 # detect libnfc (libnfc-stable installs its main header in <PREFIX>/include/libnfc/libnfc.h
 # while newer versions of the library (trunk on svn) uses <PREFIX>/include/nfc/nfc.h
+# TODO - cleanup this shit
 if (-d "/usr/include/libnfc") {
-    $DEFINE .= "-DLIBNFC_DEV";
 } elsif (-d "/usr/local/include/nfc") {
     $INC .= "-I/usr/local/include";
     $LIBS .= "-L/usr/local/lib";
-    $DEFINE .= "-DLIBNFC_DEV";
 } elsif (-d "/usr/local/include/libnfc") {
-    $INC .= "-I/usr/local/include";
-    $LIBS .= "-L/usr/local/lib";
+    die "Obsolete libnfc version. Please upgrade to last stable";
 } elsif (-d "/opt/local/include/nfc") {
     $INC .= "-I/opt/local/include";
     $LIBS .= "-L/opt/local/lib";
-    $DEFINE .= "-DLIBNFC_DEV";
 } elsif (-d "/opt/local/include/libnfc") {
-    $INC .= "-I/opt/local/include";
-    $LIBS .= "-L/opt/local/lib";
+    die "Obsolete libnfc version. Please upgrade to last stable";
 } else {
     die "No libnfc installed"
 }

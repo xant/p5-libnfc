@@ -39,11 +39,11 @@ use ExtUtils::Constant qw (constant_types C_constant XS_constant);
 my $types = {map {($_, 1)} qw()};
 my @names = (qw());
 
-print constant_types(); # macro defs
+print constant_types(), "\n"; # macro defs
 foreach (C_constant ("RIFD::Libnfc", 'constant', 'IV', $types, undef, 3, @names) ) {
     print $_, "\n"; # C constant subs
 }
-print "#### XS Section:\n";
+print "\n#### XS Section:\n";
 print XS_constant ("RIFD::Libnfc", $types);
 __END__
    */

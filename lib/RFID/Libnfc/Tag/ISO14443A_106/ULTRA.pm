@@ -145,6 +145,7 @@ sub _parse_locking_bits {
 sub select {
     my $self = shift;
 
+    use bytes;
     my $uid = pack("C6", @{$self->uid});
     nfc_configure($self->reader->pdi, DCO_ACTIVATE_FIELD, 0);
 
@@ -160,7 +161,7 @@ sub select {
         if (my $resp = nfc_initiator_transceive_bits($self->reader->pdi, pack("C", MU_REQA), 7)) {
             my $cmd = pack("C2", MU_SELECT1, 0x20); # ANTICOLLISION of cascade level 1
             if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 2)) {
-                my (@rb) = unpack("C".length($resp), $resp);
+                my (@rb) = split(//, $resp);
                 my $cuid = pack("C3", $rb[1], $rb[2], $rb[3]);
                 if ($rb[0] == 0x88) { # define a constant for 0x88
                     $cmd = pack("C9", MU_SELECT1, 0x70, @rb); # SELECT of cascade level 1  
@@ -171,7 +172,7 @@ sub select {
                         # first let's get the missing part of the uid
                         $cmd = pack("C2", MU_SELECT2, 0x20); # ANTICOLLISION of cascade level 2
                         if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 2)) {
-                            @rb = unpack("C".length($resp), $resp);
+                            @rb = split(//, $resp);
                             $cuid .= pack("C3", $rb[1], $rb[2], $rb[3]);
                             $cmd = pack("C9", MU_SELECT2, 0x70, @rb); # SELECT of cascade level 2
                             #my $crc = $self->crc($cmd);
