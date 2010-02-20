@@ -151,16 +151,14 @@ sub write_sector {
     my $nblocks = ($sector < 32) ? 4 : 16;
     my $firstblock = $tblock - $nblocks + 1;
     { 
-        use bytes;
-        my @databytes = split(//, pack("a240", $data));
+        my $buffer = pack("a240", $data);
+        my $offset = 0;
         for (my $block = $firstblock; $block < $tblock; $block++) {
-            my @blockbytes = splice(@databytes, 0, 16);
-            if (@blockbytes) {
-                unless ($self->write_block($block, pack("C16", @blockbytes))) {
-                    $self->{_last_error} = "Errors writing to block $block";
-                    return undef;
-                }
+            unless ($self->write_block($block, unpack("x${offset}a16", $buffer))) {
+                $self->{_last_error} = "Errors writing to block $block";
+                return undef;
             }
+            $offset += 16;
         }
     }
     return 1;
@@ -227,7 +225,7 @@ sub acl {
 sub _parse_acl {
     my ($self, $data) = @_;
     use bytes;
-    my ($b1, $b2, $b3, $b4) = split(//, $data);
+    my ($b1, $b2, $b3, $b4) = unpack("C4", $data);
     # TODO - extend to doublecheck using inverted flags (as suggested in the spec)
     my %acl = (
         bits => { 
