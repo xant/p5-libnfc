@@ -1,8 +1,8 @@
 Revision history for Perl extension Libnfc.
 
 0.01  Sun Nov  8 19:31:24 2009
-	- original version; created by h2xs 1.23 with options
-		-gx /usr/local/include/libnfc/libnfc.h
+        - original version; created by h2xs 1.23 with options
+            -gx /usr/local/include/libnfc/libnfc.h
 0.02  Sat Dec 19 17:03:01 CET 2009
         - support newer libnfc api (svn trunk)
         - renamed from Libnfc to RFID::Libnfc
@@ -12,3 +12,8 @@ Revision history for Perl extension Libnfc.
           (and if stable or development version)
 0.04  Thu Dec 31 13:19:42 CET 2009
         - bugfixes due to package-name changes
+0.05  Sat Feb 20 10:35:33 CET 2010
+        - upgrading to libnfc-1.3.3 API 
+          (some internal structures have been renamed)
+        - lost support for older versions of the library
+          (hopefully their api should be stable now)
