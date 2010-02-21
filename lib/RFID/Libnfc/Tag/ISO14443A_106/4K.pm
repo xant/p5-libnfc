@@ -6,7 +6,7 @@ use base qw(RFID::Libnfc::Tag::ISO14443A_106);
 use RFID::Libnfc qw(nfc_initiator_select_tag nfc_initiator_mifare_cmd print_hex);
 use RFID::Libnfc::Constants;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 # Internal representation of TABLE 3 (M001053_MF1ICS50_rev5_3.pdf)
 # the key are the actual ACL bits (C1 C2 C3) ,
