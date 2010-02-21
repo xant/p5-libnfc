@@ -25,13 +25,27 @@ if (ok ($r->init())) {
 
     if (ok $tag) {
         $tag->dump_info;
+        my $type = $tag->type;
+        ok ($type);
+        if ($tag->can('set_keys')) {
+            my @keys = (
+                pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
+                pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
+            );
 
-        my @keys = (
-            pack("C6", 0x00,0x00,0x00,0x00,0x00,0x00),
-            pack("C6", 0xb5,0xff,0x67,0xcb,0xa9,0x51),
-        );
+            $tag->set_keys(@keys);
+            is (scalar(@{$tag->{_keys}}), 2);
+        }
+        my $data = $tag->read_block(0);
+        is (length($data), 16);
+        $data = $tag->read_sector(0);
+        if ($type eq '4K') {
+            is (length($data), 48);
+        } elsif ($type eq 'ULTRA') {
+            is (length($data), 16);
+        }
+        # try reading some data
 
-        $tag->set_keys(@keys);
 
         # todo complete testunit
     }
