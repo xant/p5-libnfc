@@ -140,8 +140,8 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     my $bool = nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti);
 
     #read UID out of the tag
-    my $uidLen = $pti->uiUidLen;
-    my @uid = unpack("C".$uidLen, $pti->abtUid);
+    my $uidLen = $pti->nai->uiUidLen;
+    my @uid = unpack("C".$uidLen, $pti->nai->abtUid);
     printf("UID:\t". "%x " x $uidLen ."\n", @uid);
 
     # disconnects the tag
