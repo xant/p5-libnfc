@@ -8,6 +8,9 @@ const void *					T_PTROBJ
 nfc_device_spec_t                               T_PTROBJ
 nfc_device_option_t				T_U_CHAR
 mifare_param                                    T_OPAQUE_STRUCT
+nfc_iso14443a_info_t                            T_OPAQUE_STRUCT
+nfc_iso14443a_info_t *  			T_PTROBJ
+nfc_iso14443a_info_tPtr 			T_PTROBJ
 nfc_target_info_t                               T_OPAQUE_STRUCT
 nfc_target_info_t *				T_PTROBJ
 nfc_target_info_tPtr				T_PTROBJ

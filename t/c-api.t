@@ -47,30 +47,32 @@ if (!nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti))
     printf("Card:\tNFC ISO14443A found\n");
 }
 
+# we are intereseted to the mifare part of the nfc_target_info_t union
+my $mifare = $pti->nai; 
 # Test card type
 printf("Type:\t%s\n",
-     ($pti->btSak==0x00)?"ULTRA":
-     ($pti->btSak==0x08)?"1K":
-     ($pti->btSak==0x09)?"MINI":
-     ($pti->btSak==0x18)?"4K":
-     ($pti->btSak==0x20)?"DESFIRE":
-     ($pti->btSak==0x28)?"JCOP30":
-     ($pti->btSak==0x38)?"JCOP40":
-     ($pti->btSak==0x88)?"OYSTER":
-     ($pti->btSak==0x98)?"GEMPLUS MPCOS":
+     ($mifare->btSak==0x00)?"ULTRA":
+     ($mifare->btSak==0x08)?"1K":
+     ($mifare->btSak==0x09)?"MINI":
+     ($mifare->btSak==0x18)?"4K":
+     ($mifare->btSak==0x20)?"DESFIRE":
+     ($mifare->btSak==0x28)?"JCOP30":
+     ($mifare->btSak==0x38)?"JCOP40":
+     ($mifare->btSak==0x88)?"OYSTER":
+     ($mifare->btSak==0x98)?"GEMPLUS MPCOS":
      "unknown");
 
-printf("ATQA:\t%x,%x\n", unpack("CC", $pti->abtAtqa));
+printf("ATQA:\t%x,%x\n", unpack("CC", $mifare->abtAtqa));
 
-my $uidLen = $pti->uiUidLen;
-my @uid = unpack("C".$uidLen, $pti->abtUid);
+my $uidLen = $mifare->uiUidLen;
+my @uid = unpack("C".$uidLen, $mifare->abtUid);
 printf("UID:\t". "%x " x $uidLen ."\n", @uid);
 
-printf("SAK:\t%x\n", $pti->btSak);
+printf("SAK:\t%x\n", $mifare->btSak);
 
-if ($pti->uiAtsLen) {
-    my $atsLen = $pti->uiAtsLen;
-    my @ats = unpack("C".$atsLen, $pti->abtAts);
+if ($mifare->uiAtsLen) {
+    my $atsLen = $mifare->uiAtsLen;
+    my @ats = unpack("C".$atsLen, $mifare->abtAts);
     printf("ATS:\t". "%x " x $atsLen ."\n", @ats);
 }
   

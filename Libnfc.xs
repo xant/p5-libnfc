@@ -256,6 +256,109 @@ uint64_t
 swap_endian64(pui64)
         void *        pui64
 
+MODULE = RFID::Libnfc        PACKAGE = nfc_iso14443a_info_t
+
+nfc_iso14443a_info_t *
+_to_ptr(THIS)
+    nfc_iso14443a_info_t THIS = NO_INIT
+    PROTOTYPE: $
+    CODE:
+    if (sv_derived_from(ST(0), "nfc_iso14443a_info_t")) {
+        STRLEN len;
+        char *s = SvPV((SV*)SvRV(ST(0)), len);
+        if (len != sizeof(THIS))
+        croak("Size %d of packed data != expected %d",
+            len, sizeof(THIS));
+        RETVAL = (nfc_iso14443a_info_t *)s;
+    }
+    else
+        croak("THIS is not of type nfc_iso14443a_info_t");
+    OUTPUT:
+    RETVAL
+
+nfc_iso14443a_info_t
+new(CLASS)
+    char *CLASS = NO_INIT
+    PROTOTYPE: $
+    CODE:
+    Zero((void*)&RETVAL, sizeof(RETVAL), char);
+    OUTPUT:
+    RETVAL
+
+MODULE = RFID::Libnfc        PACKAGE = nfc_iso14443a_info_tPtr
+
+SV *
+abtAtqa(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = newSVpv((const char *)&THIS->abtAtqa, 2);
+    OUTPUT:
+    RETVAL
+
+byte_t
+abtAtqa1(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = THIS->abtAtqa[0];
+    OUTPUT:
+    RETVAL
+
+byte_t
+abtAtqa2(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = THIS->abtAtqa[1];
+    OUTPUT:
+    RETVAL
+
+byte_t
+btSak(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = THIS->btSak;
+    OUTPUT:
+    RETVAL
+
+uint32_t
+uiUidLen(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = THIS->szUidLen;
+    OUTPUT:
+    RETVAL
+
+char *
+abtUid(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = (char *)THIS->abtUid;
+    OUTPUT:
+    RETVAL
+
+uint32_t
+uiAtsLen(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = THIS->szAtsLen;
+    OUTPUT:
+    RETVAL
+
+char *
+abtAts(THIS, __value = NO_INIT)
+    nfc_iso14443a_info_t *THIS
+    PROTOTYPE: $
+    CODE:
+    RETVAL = (char *)THIS->abtAts;
+    OUTPUT:
+    RETVAL
+
 MODULE = RFID::Libnfc        PACKAGE = nfc_target_info_t
 
 nfc_target_info_t *
@@ -287,77 +390,15 @@ new(CLASS)
 
 MODULE = RFID::Libnfc        PACKAGE = nfc_target_info_tPtr
 
-SV *
-abtAtqa(THIS, __value = NO_INIT)
+nfc_iso14443a_info_t *
+nai(THIS)
     nfc_target_info_t *THIS
     PROTOTYPE: $
     CODE:
-    RETVAL = newSVpv((const char *)&THIS->nai.abtAtqa, 2);
+    RETVAL = &THIS->nai;
     OUTPUT:
     RETVAL
 
-byte_t
-abtAtqa1(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = THIS->nai.abtAtqa[0];
-    OUTPUT:
-    RETVAL
-
-byte_t
-abtAtqa2(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = THIS->nai.abtAtqa[1];
-    OUTPUT:
-    RETVAL
-
-byte_t
-btSak(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = THIS->nai.btSak;
-    OUTPUT:
-    RETVAL
-
-uint32_t
-uiUidLen(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = THIS->nai.szUidLen;
-    OUTPUT:
-    RETVAL
-
-char *
-abtUid(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = (char *)THIS->nai.abtUid;
-    OUTPUT:
-    RETVAL
-
-uint32_t
-uiAtsLen(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = THIS->nai.szAtsLen;
-    OUTPUT:
-    RETVAL
-
-char *
-abtAts(THIS, __value = NO_INIT)
-    nfc_target_info_t *THIS
-    PROTOTYPE: $
-    CODE:
-    RETVAL = (char *)THIS->nai.abtAts;
-    OUTPUT:
-    RETVAL
 
 MODULE = RFID::Libnfc        PACKAGE = nfc_device_t
 

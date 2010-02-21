@@ -8,6 +8,7 @@ use RFID::Libnfc::Constants;
 sub init {
     my ($self) = @_;
     $self->{_keys} = [];
+    $self->{_nai} = $self->{_pti}->nai;
     return $self;
 }
 
@@ -19,9 +20,9 @@ sub type {
     my $pti;
     if (ref($self) and UNIVERSAL::isa($self, "RFID::Libnfc::Tag::ISO14443A_106")) { # instance method
         $type = $self->{_type};
-        $pti = $self->{_pti};
+        $pti = $self->{_nai};
     } else { # instance method. expecting $pti as argument
-        $pti = shift; 
+        $pti = shift->nai; 
     }
     unless ($type) {
         $type =  
@@ -42,8 +43,8 @@ sub type {
 sub atqa {
     my $self = shift;
     unless ($self->{_atqa}) {
-        #$self->{_atqa} = [ $self->{_pti}->abtAtqa1, $self->{_pti}->abtAtqa2 ];
-        $self->{_atqa} = [ unpack("CC", $self->{_pti}->abtAtqa) ];
+        #$self->{_atqa} = [ $self->{_nai}->abtAtqa1, $self->{_nai}->abtAtqa2 ];
+        $self->{_atqa} = [ unpack("CC", $self->{_nai}->abtAtqa) ];
     }
     return $self->{_atqa};
 }
@@ -51,9 +52,9 @@ sub atqa {
 sub uid {
     my $self = shift;
     unless ($self->{_uid}) {
-        my $uidLen = $self->{_pti}->uiUidLen;
+        my $uidLen = $self->{_nai}->uiUidLen;
         if ($uidLen) {
-            $self->{_uid} = [ unpack("C".$uidLen, $self->{_pti}->abtUid) ];
+            $self->{_uid} = [ unpack("C".$uidLen, $self->{_nai}->abtUid) ];
         }
     }
     return $self->{_uid};
@@ -62,7 +63,7 @@ sub uid {
 sub btsak {
     my $self = shift;
     unless ($self->{_btsak}) {
-        $self->{_btsak} = $self->{_pti}->btSak;
+        $self->{_btsak} = $self->{_nai}->btSak;
     }
     return $self->{_btsak};
 }
@@ -70,9 +71,9 @@ sub btsak {
 sub ats {
     my $self = shift;
     unless ($self->{_ats}) {
-        if ($self->{_pti}->uiAtsLen) {
-            my $atsLen = $self->{_pti}->uiAtsLen;
-            my $self->{_ats} = [ unpack("C".$atsLen, $self->{_pti}->abtAts) ];
+        if ($self->{_nai}->uiAtsLen) {
+            my $atsLen = $self->{_nai}->uiAtsLen;
+            my $self->{_ats} = [ unpack("C".$atsLen, $self->{_nai}->abtAts) ];
         }
     }
     return $self->{_ats};
@@ -109,11 +110,11 @@ sub crc {
     my $bt;
     my $ofx = 0;
     my $len = length($data);
-    my $wCrc = pack("L", 0x6363);
+    my $wCrc = pack("N", 0x6363);
     while ($ofx < $len) {
         $bt = unpack("x${ofx}C", $data);
         $bt = ($bt^($wCrc & 0x00ff));
-        $bt = ($bt^($bt <<4 ));
+        $bt = ($bt^($bt << 4));
         $wCrc = ($wCrc >> 8)^($bt << 8)^($bt << 3)^($bt >> 4);
         $ofx++;
     }
