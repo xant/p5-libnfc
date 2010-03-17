@@ -5,6 +5,8 @@ use strict;
 use base qw(RFID::Libnfc::Tag);
 use RFID::Libnfc::Constants;
 
+our $VERSION = "0.09";
+
 sub init {
     my ($self) = @_;
     $self->{_keys} = [];
@@ -27,9 +29,9 @@ sub type {
     unless ($type) {
         $type =  
             ($pti->btSak==0x00)?"ULTRA":
-            ($pti->btSak==0x08)?"1K":
-            ($pti->btSak==0x09)?"MINI":
-            ($pti->btSak==0x18)?"4K":
+            ($pti->btSak==0x08)?"Classic::1K":
+            ($pti->btSak==0x09)?"Classic::MINI":
+            ($pti->btSak==0x18)?"Classic::4K":
             ($pti->btSak==0x20)?"DESFIRE":
             ($pti->btSak==0x28)?"JCOP30":
             ($pti->btSak==0x38)?"JCOP40":

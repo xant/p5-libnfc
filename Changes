@@ -22,7 +22,10 @@ Revision history for Perl extension Libnfc.
 0.07  Sat Feb 20 13:03:19 CET 2010
         - fixed a bug in 4K->write_sector() introduced when switching
           from unpack("C", $data) to split(//, $data)
-0.08  % INSERT TIMESTAMP %
+0.08  Sun Feb 21 16:47:36 CET 2010
         - supporting the nfc_target_info_t union. Mifare specific structure is
           now accessed through the 'nai' member.
           ( the nfc_iso14443a_info_t  structure has been mapped in Libnfc.xs)
+        - some minimal cleanings
+0.09  Wed Mar 17 11:26:26 CET 2010
+        - Extended support for mifare-classic tags (now supporting 4K, 1K and MINI)

@@ -12,7 +12,10 @@ fallback/const-xs.inc
 lib/RFID/Libnfc/Constants.pm
 lib/RFID/Libnfc/Reader.pm
 lib/RFID/Libnfc/Tag/ISO14443A_106.pm
-lib/RFID/Libnfc/Tag/ISO14443A_106/4K.pm
+lib/RFID/Libnfc/Tag/ISO14443A_106/Classic.pm
+lib/RFID/Libnfc/Tag/ISO14443A_106/Classic/1K.pm
+lib/RFID/Libnfc/Tag/ISO14443A_106/Classic/4K.pm
+lib/RFID/Libnfc/Tag/ISO14443A_106/Classic/MINI.pm
 lib/RFID/Libnfc/Tag/ISO14443A_106/ULTRA.pm
 lib/RFID/Libnfc/Tag.pm
 lib/RFID/Libnfc.pm

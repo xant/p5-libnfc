@@ -9,7 +9,7 @@ use RFID::Libnfc qw(nfc_connect nfc_disconnect nfc_initiator_init nfc_configure)
 use RFID::Libnfc::Tag;
 use RFID::Libnfc::Constants;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 sub new {
     my ($class, %args) = @_;
