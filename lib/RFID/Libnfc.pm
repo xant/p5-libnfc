@@ -25,10 +25,10 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 	nfc_configure
 	nfc_connect
 	nfc_disconnect
-	nfc_initiator_deselect_tag
+	nfc_initiator_deselect_target
 	nfc_initiator_init
-	nfc_initiator_mifare_cmd
-	nfc_initiator_select_tag
+        nfc_initiator_transceive_dep_bytes
+	nfc_initiator_select_passive_target
 	nfc_initiator_transceive_bits
 	nfc_initiator_transceive_bytes
 	nfc_target_init
@@ -137,7 +137,7 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     # Try to find a MIFARE Classic tag
     my $ti = nfc_target_info_t->new();
     my $pti = $ti->_to_ptr;
-    my $bool = nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti);
+    my $bool = nfc_initiator_select_passive_target($pdi, IM_ISO14443A_106, 0, 0, $pti);
 
     #read UID out of the tag
     my $uidLen = $pti->nai->uiUidLen;
@@ -163,10 +163,10 @@ None by default.
   $pci = nfc_connect()
   nfc_disconnect($pdi)
   $bool = nfc_configure($pdi, $dco, $bEnable)
-  $bool = nfc_initiator_deselect_tag($pdi)
+  $bool = nfc_initiator_deselect_target($pdi)
   $bool = nfc_initiator_init($pdi)
-  $bool = nfc_initiator_mifare_cmd($pdi, $mifare_cmd, $ui8Block, $mifare_param_ref)
-  $bool = nfc_initiator_select_tag($pdi, $im, $pbtInitData, $uiInitDataLen, $pti)
+  $bool = nfc_initiator_transceive_dep_bytes($pdi, $pbtTx, $szTxLen, $pbtRx, $pszRxLen)
+  $bool = nfc_initiator_select_passive_target($pdi, $im, $pbtInitData, $uiInitDataLen, $pti)
   $data = nfc_initiator_transceive_bits($pdi, $pbtTx, $uiTxBits, $pbtTxPar)
   $data = nfc_initiator_transceive_bytes($pdi, $pbtTx, $uiTxLen)
   $data = nfc_target_init($pdi)

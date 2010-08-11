@@ -3,7 +3,7 @@ package RFID::Libnfc::Tag::ISO14443A_106::4K;
 use strict;
 
 use base qw(RFID::Libnfc::Tag::ISO14443A_106);
-use RFID::Libnfc qw(nfc_initiator_select_tag nfc_initiator_mifare_cmd print_hex);
+use RFID::Libnfc qw(nfc_initiator_select_tag nfc_initiator_transceive_dep_bytes print_hex);
 use RFID::Libnfc::Constants;
 
 our $VERSION = '0.09';
@@ -91,10 +91,9 @@ sub read_block {
         return undef unless 
             $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
-    my $mp = mifare_param->new();
-    my $mpt = $mp->_to_ptr;
-    if (nfc_initiator_mifare_cmd($self->reader->pdi, MC_READ, $block, $mpt)) {
-        return unpack("a16", $mpt->mpd); 
+    my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $block);
+    if (my $resp = nfc_initiator_transceive_dep_bytes($self->reader->pdi, $initiatior_exchange_data, 5)) {
+        return unpack("a16", $resp); 
     } else {
         $self->{_last_error} = "Error reading $sector, block $block"; # XXX - does libnfc provide any clue on the ongoing error?
     }
@@ -130,11 +129,8 @@ sub write_block {
             $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[1] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
 
-    my $mp = mifare_param->new();
-    my $mpt = $mp->_to_ptr;
-    $mpt->mpd(pack("a16", $data));
-
-    if (nfc_initiator_mifare_cmd($self->reader->pdi, MC_WRITE, $block, $mpt)) {
+    my $initiator_exchange_data = pack("C5a16", 0xD4, 0x40, 0x01, MC_WRITE, $block, $data);
+    if (nfc_initiator_transceive_dep_bytes($self->reader->pdi, $initiatior_exchange_data, 5+16)) {
         return 1;
     } else {
         # XXX can libnfc provide more info about the failure?
@@ -190,15 +186,12 @@ sub unlock {
 
     $keytype = MC_AUTH_A unless ($keytype and ($keytype == MC_AUTH_A or $keytype == MC_AUTH_B));
     my $keyidx = ($keytype == MC_AUTH_A) ? 0 : 1;
-    my $mp = mifare_param->new();
-    my $mpt = $mp->_to_ptr;
-
-    $mpt->mpa($self->{_keys}->[$sector][$keyidx], pack("C4", @{$self->uid}));
 
     printf("unlocking sector $sector with key/uid : " .
         "%x " x 6 . " ---- " . "%x " x 4 . "\n", unpack("C10", $mpt->mpa)) if $self->{debug};
 
-    return 1 if (nfc_initiator_mifare_cmd($self->reader->pdi, $keytype, $tblock, $mpt));
+    my $initiator_exchange_data = pack("C5a6C4", 0xD4, 0x40, 0x01, $keytype, $tblock, $self->{_keys}->[$sector][$keyidx], @{$self->uid});
+    return 1 if (nfc_initiator_transceive_dep_bytes($self->reader->pdi, $initiatior_exchange_data, 5+6+4));
 
     $self->{_last_error} = "Failed to authenticate on sector $sector (tblock:$tblock) with key " .
         sprintf("%x " x 6 . "\n", unpack("C6", $mpt->mpa));
@@ -211,9 +204,8 @@ sub acl {
     my $tblock = $self->trailer_block($sector);
 
     if ($self->unlock($sector)) {
-        my $mp = mifare_param->new();
-        my $mpt = $mp->_to_ptr;
-        if (nfc_initiator_mifare_cmd($self->reader->pdi, MC_READ, $tblock, $mpt)) {
+        my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $tblock);
+        if (nfc_initiator_transceive_dep_bytes($self->reader->pdi, $initiator_exchange_data, 5)) {
             my $j = $mpt->mpd;
             return $self->_parse_acl(unpack("x6a4x6", $mpt->mpd));
         }

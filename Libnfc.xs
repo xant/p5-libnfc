@@ -72,7 +72,7 @@ nfc_disconnect(pnd)
         nfc_device_t *        pnd
 
 _Bool
-nfc_initiator_deselect_tag(pnd)
+nfc_initiator_deselect_target(pnd)
         nfc_device_t *        pnd
 
 _Bool
@@ -80,19 +80,32 @@ nfc_initiator_init(pnd)
         nfc_device_t *        pnd
 
 _Bool
-nfc_initiator_mifare_cmd(pnd, mc, ui8Block, pmp)
-        nfc_device_t *        pnd
-        unsigned char          mc
-        uint8_t        ui8Block
-        mifare_param *        pmp
-
-_Bool
-nfc_initiator_select_tag(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti)
+nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti)
         nfc_device_t *        pnd
         nfc_modulation_t      nmInitModulation
         byte_t *        pbtInitData
         uint32_t        uiInitDataLen
         nfc_target_info_t *        pti
+
+SV *
+nfc_initiator_transceive_dep_bytes(pnd, pbtTx, szTxLen)
+        nfc_device_t *  pnd
+        byte_t *        pbtTx
+        size_t          szTxLen
+    PREINIT:
+        byte_t *        pbtRx;
+        size_t          szRxLen;
+        SV *            sv = &PL_sv_undef;
+    CODE:
+        pbtRx = malloc(MAX_FRAME_LEN);
+        if (nfc_initiator_transceive_dep_bytes(pnd, pbtTx, szTxLen,  pbtRx, &szRxLen))
+            sv = newSVpv((char *)pbtRx, szRxLen);
+        else 
+            sv = newSV(0);
+        free(pbtRx);
+        RETVAL = sv;
+    OUTPUT:
+        RETVAL
 
 SV *
 nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits)
@@ -102,18 +115,17 @@ nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits)
     PREINIT:
         int             rc;            
         uint32_t        len;
-        byte_t *        pbtRx;
         size_t          puiRxBits = 0;
-        byte_t          *rbuf;
+        byte_t          *pbtRx;
         SV              *sv = &PL_sv_undef;
     CODE:
-        rbuf = malloc(MAX_FRAME_LEN);
+        pbtRx = malloc(MAX_FRAME_LEN);
         // TODO - handle parity
-        if (nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits,  NULL, rbuf, &puiRxBits, NULL))
-            sv = newSVpv((char *)rbuf, puiRxBits/8);
+        if (nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits,  NULL, pbtRx, &puiRxBits, NULL))
+            sv = newSVpv((char *)pbtRx, puiRxBits/8);
         else 
             sv = newSV(0);
-        free(rbuf);
+        free(pbtRx);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -130,15 +142,14 @@ nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen)
         uint32_t        len;
         byte_t *        pbtRx;
         size_t          puiRxLen = 0;
-        byte_t          *rbuf;
         SV              *sv = &PL_sv_undef;
     CODE:
-        rbuf = malloc(MAX_FRAME_LEN);
-        if (nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen,  rbuf, &puiRxLen))
-            sv = newSVpv((char *)rbuf, puiRxLen);
+        pbtRx = malloc(MAX_FRAME_LEN);
+        if (nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen,  pbtRx, &puiRxLen))
+            sv = newSVpv((char *)pbtRx, puiRxLen);
         else 
             sv = newSV(0);
-        free(rbuf);
+        free(pbtRx);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -184,21 +195,20 @@ nfc_target_receive_bits(pnd)
 SV *
 nfc_target_receive_bytes(pnd, pbtRx)
         nfc_device_t *        pnd
-        byte_t *        pbtRx
     PREINIT:
         _Bool           rc;            
         uint32_t        len;
         size_t          puiRxLen;
-        byte_t          *rbuf;
+        byte_t *        pbtRx;
         SV              *sv;
     CODE:
-        rbuf = malloc(MAX_FRAME_LEN);
-        rc = nfc_target_receive_bytes(pnd, rbuf, &puiRxLen);
+        pbtRx = malloc(MAX_FRAME_LEN);
+        rc = nfc_target_receive_bytes(pnd, pbtRx, &puiRxLen);
         if (rc)
-            sv = newSVpv((char *)rbuf, puiRxLen);
+            sv = newSVpv((char *)pbtRx, puiRxLen);
         else
             sv = newSV(0);
-        free(rbuf);
+        free(pbtRx);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -503,113 +513,6 @@ ui8TxBits(THIS, __value = NO_INIT)
         THIS->ui8TxBits = __value;
     }
     RETVAL = THIS->ui8TxBits;
-    OUTPUT:
-    RETVAL
-
-MODULE = RFID::Libnfc        PACKAGE = mifare_param
-
-mifare_param *
-_to_ptr(THIS)
-    mifare_param THIS = NO_INIT
-    PROTOTYPE: $
-    CODE:
-    if (sv_derived_from(ST(0), "mifare_param")) {
-        STRLEN len;
-        char *s = SvPV((SV*)SvRV(ST(0)), len);
-        if (len != sizeof(THIS))
-        croak("Size %d of packed data != expected %d",
-            len, sizeof(THIS));
-        RETVAL = (mifare_param *)s;
-    }
-    else
-        croak("THIS is not of type mifare_param");
-    OUTPUT:
-    RETVAL
-
-mifare_param
-new(CLASS)
-    char *CLASS = NO_INIT
-    PROTOTYPE: $
-    CODE:
-    Zero((void*)&RETVAL, sizeof(RETVAL), char);
-    OUTPUT:
-    RETVAL
-
-MODULE = RFID::Libnfc        PACKAGE = mifare_paramPtr
-
-char *
-mpa(THIS, __key = NO_INIT, __uid = NO_INIT)
-    mifare_param *THIS
-    SV *__key
-    SV *__uid
-    PROTOTYPE: $;$;$
-    CODE:
-    if (items > 1) {
-        STRLEN len = 0;
-        if (SvPOK(__key)) {
-            len = SvCUR(__key);
-            if (len == 6) {
-                char *k = SvPV(__key, len);
-                memcpy(&THIS->mpa.abtKey, k, len);
-            } else {
-                croak("Size %d of packed data != expected 6 for __key", len);
-            }
-        }
-        if (SvPOK(__uid)) {
-            len = SvCUR(__uid);
-            if (len == 4) {
-                char *u = SvPV(__uid, len);
-                memcpy(&THIS->mpa.abtUid, u, len);
-            } else {
-                croak("Size %d of packed data != expected 4 for __uid", len);
-            }
-        }
-    }
-    RETVAL = (char *)&THIS->mpa;
-    OUTPUT:
-    RETVAL
-
-
-SV *
-mpd(THIS, __value = NO_INIT)
-    mifare_param *THIS
-    SV *__value
-    PROTOTYPE: $;$
-    CODE:
-    if (items > 1) {
-        STRLEN len = 0;
-        if (SvPOK(__value)) {
-            len = SvCUR(__value);
-            if (len <= 16) {
-                char *v = SvPV(__value, len);
-                memcpy(&THIS->mpd.abtData, v, len);
-            } else {
-                croak("Size %d of packed data != expected 16 for __value", len);
-            }
-        }
-    }
-    RETVAL = newSVpv((char *)&THIS->mpd, 16);
-    OUTPUT:
-    RETVAL
-
-char *
-mpv(THIS, __value = NO_INIT)
-    mifare_param *THIS
-    SV *__value
-    PROTOTYPE: $;$
-    CODE:
-    if (items > 1) {
-        STRLEN len = 0;
-        if (SvPOK(__value)) {
-            len = SvCUR(__value);
-            if (len <= 4) {
-                memcpy(&THIS->mpv.abtValue, SvPV(__value, len), len);
-            } else {
-                croak("Size %d of packed data != expected 6 for __value", len);
-            }
-        }
-    }
-    RETVAL = (char *)&THIS->mpv;
     OUTPUT:
     RETVAL
 

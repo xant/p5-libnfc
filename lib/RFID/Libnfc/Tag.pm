@@ -2,7 +2,7 @@ package RFID::Libnfc::Tag;
 
 use strict;
 
-use RFID::Libnfc qw(nfc_configure nfc_initiator_select_tag nfc_initiator_deselect_tag);
+use RFID::Libnfc qw(nfc_configure nfc_initiator_select_passive_target nfc_initiator_deselect_target);
 use RFID::Libnfc::Constants;
 use Data::Dumper;
 
@@ -37,7 +37,7 @@ sub new {
     # Enable field so more power consuming cards can power themselves up
     nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 1);
 
-    if (!nfc_initiator_select_tag($reader->pdi, $type, 0, 0, $self->{_pti}))
+    if (!nfc_initiator_select_passive_target($reader->pdi, $type, 0, 0, $self->{_pti}))
     {
         $self->{_last_error} = "No tag was found";
         return undef;
@@ -80,7 +80,7 @@ sub AUTOLOAD {
 
 sub DESTROY {
     my $self = shift;
-    nfc_initiator_deselect_tag($self->reader->pdi);
+    nfc_initiator_deselect_target($self->reader->pdi);
 }
 
 # number of blocks on the tag
