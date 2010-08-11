@@ -74,10 +74,14 @@ nfc_disconnect(pnd)
 _Bool
 nfc_initiator_deselect_target(pnd)
         nfc_device_t *        pnd
-
-_Bool
-nfc_initiator_init(pnd)
-        nfc_device_t *        pnd
+    CODE:
+#ifndef NFC_DEPRECATED
+        RETVAL=nfc_initiator_deselect_target(pnd);
+#else
+        RETVAL=nfc_initiator_deselect_tag(pnd);
+#endif
+    OUTPUT:
+        RETVAL
 
 _Bool
 nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti)
@@ -86,6 +90,18 @@ nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDa
         byte_t *        pbtInitData
         uint32_t        uiInitDataLen
         nfc_target_info_t *        pti
+    CODE:
+#ifndef NFC_DEPRECATED
+        RETVAL=nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti);
+#else
+        RETVAL=nfc_initiator_select_tag(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti);
+#endif
+    OUTPUT:
+        RETVAL
+
+_Bool
+nfc_initiator_init(pnd)
+        nfc_device_t *        pnd
 
 SV *
 nfc_initiator_transceive_dep_bytes(pnd, pbtTx, szTxLen)

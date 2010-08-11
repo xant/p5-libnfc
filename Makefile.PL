@@ -6,22 +6,44 @@ my $LIBS = "-lnfc ";
 my $DEFINE = "";
 
 # detect libnfc (libnfc-stable installs its main header in <PREFIX>/include/libnfc/libnfc.h
-# while newer versions of the library (trunk on svn) uses <PREFIX>/include/nfc/nfc.h
+# while newer versions of the library (> 1.3) uses <PREFIX>/include/nfc/nfc.h
 # TODO - cleanup this shit
+my $NFC_INCDIR;
+my $NFC_LIBDIR;
 if (-d "/usr/include/libnfc") {
 } elsif (-d "/usr/local/include/nfc") {
-    $INC .= "-I/usr/local/include";
-    $LIBS .= "-L/usr/local/lib";
+    $NFC_INCDIR = "/usr/local/include/nfc";
+    $NFC_LIBDIR = "/usr/local/lib";
 } elsif (-d "/usr/local/include/libnfc") {
     die "Obsolete libnfc version. Please upgrade to last stable";
 } elsif (-d "/opt/local/include/nfc") {
-    $INC .= "-I/opt/local/include";
-    $LIBS .= "-L/opt/local/lib";
+    $NFC_INCDIR = "/opt/local/include/nfc";
+    $NFC_LIBDIR = "/opt/local/lib";
 } elsif (-d "/opt/local/include/libnfc") {
     die "Obsolete libnfc version. Please upgrade to last stable";
 } else {
     die "No libnfc installed"
 }
+$INC .= "-I$NFC_INCDIR"
+    if ($NFC_INCDIR);
+$LIBS .= "-L$NFC_LIBDIR"
+    if ($NFC_LIBDIR);
+
+# Check libnfc API (it has been changed with libnfc-1.3.4)
+open(NFC_H, "$NFC_INCDIR/nfc.h")
+    or die "Can't find libnfc header ($NFC_INCDIR/nfc.h) : $!";
+while (<NFC_H>) {
+    if ($_ =~ /nfc_initiator_(?:select|deselect)_tag/) {
+        $DEFINE = "-DNFC_DEPRECATED";
+        last;
+    } 
+    #elsif ($_ =~ /nfc_initiator_(?:select_passive|deselect)_target/) {
+    #   $DEFINE = "-DNFC_DEPRECATED";
+    #    last;
+    #}
+}
+close(NFC_H);
+
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
