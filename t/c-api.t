@@ -38,7 +38,7 @@ printf("Reader:\t%s\n", $pdi->acName);
 # Try to find a MIFARE Classic tag
 my $ti = nfc_target_info_t->new();
 my $pti = $ti->_to_ptr;
-if (!nfc_initiator_select_tag($pdi, IM_ISO14443A_106, 0, 0, $pti))
+if (!nfc_initiator_select_passive_target($pdi, IM_ISO14443A_106, 0, 0, $pti))
 {
     printf("Error: no tag was found\n");
     nfc_disconnect($pdi);
