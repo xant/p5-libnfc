@@ -6,7 +6,7 @@ use RFID::Libnfc qw(nfc_configure nfc_initiator_select_passive_target nfc_initia
 use RFID::Libnfc::Constants;
 use Data::Dumper;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 my %types = (
     scalar(IM_ISO14443A_106) => 'RFID::Libnfc::Tag::ISO14443A_106'
@@ -39,7 +39,7 @@ sub new {
 
     if (!nfc_initiator_select_passive_target($reader->pdi, $type, 0, 0, $self->{_pti}))
     {
-        $self->{_last_error} = "No tag was found";
+        #warn "No tag was found";
         return undef;
     } else {
         print "Card:\t ".(split('::', $types{$type}))[2]." found\n" if $self->{debug};

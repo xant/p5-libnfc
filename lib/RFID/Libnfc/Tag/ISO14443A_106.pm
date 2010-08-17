@@ -5,7 +5,7 @@ use strict;
 use base qw(RFID::Libnfc::Tag);
 use RFID::Libnfc::Constants;
 
-our $VERSION = "0.09";
+our $VERSION = "0.10";
 
 sub init {
     my ($self) = @_;
