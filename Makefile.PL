@@ -14,6 +14,9 @@ if (-d "/usr/include/libnfc") {
 } elsif (-d "/usr/local/include/nfc") {
     $NFC_INCDIR = "/usr/local/include/nfc";
     $NFC_LIBDIR = "/usr/local/lib";
+} elsif (-d "/usr/include/nfc") {
+    $NFC_INCDIR = "/usr/include/nfc";
+    $NFC_LIBDIR = "/usr/lib";
 } elsif (-d "/usr/local/include/libnfc") {
     die "Obsolete libnfc version. Please upgrade to last stable";
 } elsif (-d "/opt/local/include/nfc") {
