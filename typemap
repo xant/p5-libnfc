@@ -2,27 +2,11 @@ _Bool                       T_IV
 byte_t                      T_U_CHAR
 byte_t *                    T_PV
 const byte_t *              T_PV
-const nfc_device_t *        T_PTROBJ
 void *                      T_PTROBJ
 const void *                T_PTROBJ
 nfc_device_spec_t           T_PTROBJ
 nfc_device_option_t         T_U_CHAR
-nfc_iso14443a_info_t        T_OPAQUE_STRUCT
-nfc_iso14443a_info_t *      T_PTROBJ
-nfc_iso14443a_info_tPtr     T_PTROBJ
-nfc_target_t                T_OPAQUE_STRUCT
-nfc_target_t *              T_PTROBJ
-nfc_target_tPtr             T_PTROBJ
-nfc_target_info_t           T_OPAQUE_STRUCT
-nfc_target_info_t *         T_PTROBJ
-nfc_target_info_tPtr        T_PTROBJ
-nfc_device_t                T_OPAQUE_STRUCT
-nfc_device_t *              T_PTROBJ
-nfc_device_tPtr             T_PTROBJ
 nfc_chip_t                  T_U_CHAR
-nfc_modulation_t            T_OPAQUE_STRUCT
-nfc_modulation_t *          T_PTROBJ
-nfc_modulation_tPtr         T_PTROBJ
 nfc_modulation_type_t       T_ENUM
 nfc_modulation_type_t *     T_PTROBJ
 nfc_baud_rate_t             T_ENUM
@@ -32,6 +16,12 @@ uint32_t *                  T_PTROBJ
 size_t *                    T_PTROBJ
 uint64_t                    T_NV
 uint8_t                     T_U_CHAR
+RFID::Libnfc::ISO14443AInfo T_PTROBJ
+RFID::Libnfc::TargetInfo    T_PTROBJ
+RFID::Libnfc::Device        T_PTROBJ
+RFID::Libnfc::Target        T_PTROBJ
+RFID::Libnfc::Modulation    T_PTROBJ
+
 #############################################################################
 INPUT
 T_OPAQUE_STRUCT

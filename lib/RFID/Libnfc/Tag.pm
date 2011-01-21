@@ -35,10 +35,10 @@ sub new {
     # Enable field so more power consuming cards can power themselves up
     nfc_configure($reader->pdi, NDO_ACTIVATE_FIELD, 1);
 
-    $self->{_t} = nfc_target_t->new();
-    $self->{_nti} = $self->{_t}->_to_ptr->nti;
-    $self->{_t}->_to_ptr->nm->nmt($type);
-    if (!nfc_initiator_select_passive_target($reader->pdi, $self->{_t}->_to_ptr->nm, 0, 0, $self->{_t}->_to_ptr))
+    $self->{_t} = RFID::Libnfc::Target->new();
+    $self->{_t}->nm->nmt($type);
+    $self->{_nti} = $self->{_t}->nti;
+    if (!nfc_initiator_select_passive_target($reader->pdi, $self->{_t}->nm, 0, 0, $self->{_t}))
     {
         #warn "No tag was found";
         return undef;

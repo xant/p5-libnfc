@@ -36,8 +36,8 @@ nfc_configure($pdi, NDO_ACTIVATE_FIELD, 1);
 printf("Reader:\t%s\n", $pdi->acName);
 
 # Try to find a MIFARE Classic tag
-my $pt = nfc_target_t->new();
-my $pti = $pt->_to_ptr;
+my $pti = RFID::Libnfc::Target->new();
+$pti->nm->nmt(IM_ISO14443A_106);
 if (!nfc_initiator_select_passive_target($pdi, $pti->nm, 0, 0, $pti))
 {
     printf("Error: no tag was found\n");
