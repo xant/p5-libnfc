@@ -21,13 +21,13 @@ our $VERSION = '0.10';
 # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
 # will save memory.
 our %EXPORT_TAGS = ( 'all' => [ qw(
-	append_iso14443a_crc
+	iso14443a_crc_append
 	nfc_configure
 	nfc_connect
 	nfc_disconnect
 	nfc_initiator_deselect_target
 	nfc_initiator_init
-        nfc_initiator_transceive_dep_bytes
+        nfc_initiator_transceive_bytes
 	nfc_initiator_select_passive_target
 	nfc_initiator_transceive_bits
 	nfc_initiator_transceive_bytes
@@ -124,13 +124,13 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     }
     nfc_initiator_init($pdi); 
     # Drop the field for a while
-    nfc_configure($pdi, DCO_ACTIVATE_FIELD, 0);
+    nfc_configure($pdi, NDO_ACTIVATE_FIELD, 0);
     # Let the reader only try once to find a tag
-    nfc_configure($pdi, DCO_INFINITE_SELECT, 0);
-    nfc_configure($pdi, DCO_HANDLE_CRC, 1);
-    nfc_configure($pdi, DCO_HANDLE_PARITY, 1);
+    nfc_configure($pdi, NDO_INFINITE_SELECT, 0);
+    nfc_configure($pdi, NDO_HANDLE_CRC, 1);
+    nfc_configure($pdi, NDO_HANDLE_PARITY, 1);
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($pdi, DCO_ACTIVATE_FIELD, 1);
+    nfc_configure($pdi, NDO_ACTIVATE_FIELD, 1);
 
     printf("Reader:\t%s\n", $pdi->acName);
 
@@ -159,17 +159,16 @@ None by default.
 
 =head2 Exportable functions
 
-  append_iso14443a_crc($pbtData, $uiLen)
+  iso14443a_crc_append($pbtData, $uiLen)
   $pci = nfc_connect()
   nfc_disconnect($pdi)
-  $bool = nfc_configure($pdi, $dco, $bEnable)
+  $bool = nfc_configure($pdi, $ndo, $bEnable)
   $bool = nfc_initiator_deselect_target($pdi)
   $bool = nfc_initiator_init($pdi)
-  $bool = nfc_initiator_transceive_dep_bytes($pdi, $pbtTx, $szTxLen, $pbtRx, $pszRxLen)
   $bool = nfc_initiator_select_passive_target($pdi, $im, $pbtInitData, $uiInitDataLen, $pti)
   $data = nfc_initiator_transceive_bits($pdi, $pbtTx, $uiTxBits, $pbtTxPar)
   $data = nfc_initiator_transceive_bytes($pdi, $pbtTx, $uiTxLen)
-  $data = nfc_target_init($pdi)
+  $data = nfc_target_init($pdi, $pti)
   $data = nfc_target_receive_bits($pdi)
   $data = nfc_target_receive_bytes($pdi)
   $bool = nfc_target_send_bits($pdi, $pbtTx, $uiTxBits, $pbtTxPar)

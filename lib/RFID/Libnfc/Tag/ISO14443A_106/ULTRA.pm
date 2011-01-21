@@ -3,7 +3,7 @@ package RFID::Libnfc::Tag::ISO14443A_106::ULTRA;
 use strict;
 
 use base qw(RFID::Libnfc::Tag::ISO14443A_106);
-use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits append_iso14443a_crc print_hex);
+use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits iso14443a_crc_append print_hex);
 use RFID::Libnfc::Constants;
 
 our $VERSION = '0.10';
@@ -12,8 +12,9 @@ my $ALLOW_LOCKINGBITS_CHANGES = 0;
 
 sub read_block {
     my ($self, $block, $noauth, $truncate) = @_;
+
     my $cmd = pack("C4", MU_READ, $block);
-    append_iso14443a_crc($cmd, 2);
+    iso14443a_crc_append($cmd, 2);
     if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 4)) {
         if ($self->{debug}) {
             printf("R: ");
@@ -57,7 +58,7 @@ sub write_block {
         my $prefix = pack("C2", $cmdtag, $block);
         my $postfix = pack("C2", 0, 0);
         my $cmd = $prefix.pack("a".$len, $data).$postfix;
-        append_iso14443a_crc($cmd, $len+2);
+        iso14443a_crc_append($cmd, $len+2);
         if (nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, $len+4)) {
             if ($self->{debug}) {
                 printf("W: ");
@@ -106,6 +107,8 @@ sub sectors {
 
 sub acl {
     my $self = shift;
+
+    #nfc_configure($self->reader->pdi, NDO_EASY_FRAMING, 1);
     my $data = $self->read_block(2);
     if ($data) {
         return $self->_parse_locking_bits(unpack("x2a2", $data));
@@ -149,14 +152,17 @@ sub select {
 
     use bytes;
     my $uid = pack("C6", @{$self->uid});
-    nfc_configure($self->reader->pdi, DCO_ACTIVATE_FIELD, 0);
+    nfc_configure($self->reader->pdi, NDO_ACTIVATE_FIELD, 0);
 
     # Configure the CRC and Parity settings
-    nfc_configure($self->reader->pdi, DCO_HANDLE_CRC, 0);
-    nfc_configure($self->reader->pdi, DCO_HANDLE_PARITY, 1);
+    nfc_configure($self->reader->pdi, NDO_HANDLE_CRC, 0);
+    nfc_configure($self->reader->pdi, NDO_HANDLE_PARITY, 1);
+    nfc_configure($self->reader->pdi, NDO_EASY_FRAMING, 0); 
+    nfc_configure($self->reader->pdi, NDO_AUTO_ISO14443_4, 0); 
+    nfc_configure($self->reader->pdi, NDO_FORCE_ISO14443_A, 1); 
 
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($self->reader->pdi, ,DCO_ACTIVATE_FIELD, 1);
+    nfc_configure($self->reader->pdi, ,NDO_ACTIVATE_FIELD, 1);
     my $retry = 0;
     my $retrycnt = 0;
     do {
@@ -168,7 +174,7 @@ sub select {
                 if ($rb[0] == 0x88) { # define a constant for 0x88
                     $cmd = pack("C9", MU_SELECT1, 0x70, @rb); # SELECT of cascade level 1  
                     #my $crc = $self->crc($cmd);
-                    append_iso14443a_crc($cmd, 7);
+                    iso14443a_crc_append($cmd, 7);
                     if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 9)) {
                         # we need to do cascade level 2
                         # first let's get the missing part of the uid
@@ -178,7 +184,7 @@ sub select {
                             $cuid .= pack("C3", $rb[1], $rb[2], $rb[3]);
                             $cmd = pack("C9", MU_SELECT2, 0x70, @rb); # SELECT of cascade level 2
                             #my $crc = $self->crc($cmd);
-                            append_iso14443a_crc($cmd, 7);
+                            iso14443a_crc_append($cmd, 7);
                             if ($resp = nfc_initiator_transceive_bytes($self->reader->pdi, $cmd, 9)) {
                                 if ($uid == $cuid) {
                                     return 1;

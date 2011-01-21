@@ -38,7 +38,7 @@ BOOT:
 
 
 void
-append_iso14443a_crc(pbtData, uiLen)
+iso14443a_crc_append(pbtData, uiLen)
         byte_t *        pbtData
         uint32_t        uiLen
 
@@ -84,44 +84,20 @@ nfc_initiator_deselect_target(pnd)
         RETVAL
 
 _Bool
-nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti)
+nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pt)
         nfc_device_t *        pnd
-        nfc_modulation_t      nmInitModulation
+        nfc_modulation_t      *nmInitModulation
         byte_t *        pbtInitData
         uint32_t        uiInitDataLen
-        nfc_target_info_t *        pti
+        nfc_target_t *        pt
     CODE:
-#ifndef NFC_DEPRECATED
-        RETVAL=nfc_initiator_select_passive_target(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti);
-#else
-        RETVAL=nfc_initiator_select_tag(pnd, nmInitModulation, pbtInitData, uiInitDataLen, pti);
-#endif
+        RETVAL=nfc_initiator_select_passive_target(pnd, *nmInitModulation, pbtInitData, uiInitDataLen, pt);
     OUTPUT:
         RETVAL
 
 _Bool
 nfc_initiator_init(pnd)
         nfc_device_t *        pnd
-
-SV *
-nfc_initiator_transceive_dep_bytes(pnd, pbtTx, szTxLen)
-        nfc_device_t *  pnd
-        byte_t *        pbtTx
-        size_t          szTxLen
-    PREINIT:
-        byte_t *        pbtRx;
-        size_t          szRxLen;
-        SV *            sv = &PL_sv_undef;
-    CODE:
-        pbtRx = malloc(MAX_FRAME_LEN);
-        if (nfc_initiator_transceive_dep_bytes(pnd, pbtTx, szTxLen,  pbtRx, &szRxLen))
-            sv = newSVpv((char *)pbtRx, szRxLen);
-        else 
-            sv = newSV(0);
-        free(pbtRx);
-        RETVAL = sv;
-    OUTPUT:
-        RETVAL
 
 SV *
 nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits)
@@ -163,8 +139,10 @@ nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen)
         pbtRx = malloc(MAX_FRAME_LEN);
         if (nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen,  pbtRx, &puiRxLen))
             sv = newSVpv((char *)pbtRx, puiRxLen);
-        else 
+        else {
+            nfc_perror (pnd, "nfc_initiator_transceive_bytes");
             sv = newSV(0);
+        }
         free(pbtRx);
         RETVAL = sv;
     OUTPUT:
@@ -172,15 +150,16 @@ nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen)
 
 
 SV *
-nfc_target_init(pnd)
+nfc_target_init(pnd, pnt)
         nfc_device_t *  pnd
+        nfc_target_t *  pnt
     PREINIT:
         SV *            sv;
         byte_t *        pbtRx;
         size_t          uiRxBits;
     CODE:
         pbtRx = malloc(MAX_FRAME_LEN);
-        if (nfc_target_init(pnd, pbtRx, &uiRxBits))
+        if (nfc_target_init(pnd, pnt, pbtRx, &uiRxBits))
             sv = newSVpv((char *)pbtRx, uiRxBits/8+1);
         else 
             sv = newSV(0);
@@ -242,10 +221,6 @@ nfc_target_send_bytes(pnd, pbtTx, uiTxLen)
         byte_t *        pbtTx
         uint32_t        uiTxLen
 
-byte_t
-oddparity(bt)
-        byte_t        bt
-
 void
 print_hex(__data, uiLen = NO_INIT)
         SV *__data
@@ -255,32 +230,16 @@ print_hex(__data, uiLen = NO_INIT)
     CODE:
         // TODO - allow to specify an offset as well
         if (SvPOK(__data)) {
+            int i;
             if (items > 1) 
                 pbtData = (byte_t *)SvPV_nolen(__data);
             else
                 pbtData = (byte_t *)SvPV(__data, uiLen);
-            print_hex(pbtData, uiLen);
+            for (i = 0; i < uiLen; i++) {
+                printf("%02x ", pbtData[i]);
+            }
+            printf("\n");
         }
-
-
-void
-print_hex_bits(pbtData, uiBits)
-        byte_t *        pbtData
-        uint32_t        uiBits
-
-void
-print_hex_par(pbtData, uiBits, pbtDataPar)
-        byte_t *        pbtData
-        uint32_t        uiBits
-        byte_t *        pbtDataPar
-
-uint32_t
-swap_endian32(pui32)
-        void *        pui32
-
-uint64_t
-swap_endian64(pui64)
-        void *        pui64
 
 MODULE = RFID::Libnfc        PACKAGE = nfc_iso14443a_info_t
 
@@ -350,7 +309,7 @@ btSak(THIS, __value = NO_INIT)
     RETVAL
 
 uint32_t
-uiUidLen(THIS, __value = NO_INIT)
+szUidLen(THIS, __value = NO_INIT)
     nfc_iso14443a_info_t *THIS
     PROTOTYPE: $
     CODE:
@@ -529,6 +488,120 @@ ui8TxBits(THIS, __value = NO_INIT)
         THIS->ui8TxBits = __value;
     }
     RETVAL = THIS->ui8TxBits;
+    OUTPUT:
+    RETVAL
+
+MODULE = RFID::Libnfc        PACKAGE = nfc_modulation_t
+
+nfc_modulation_t *
+_to_ptr(THIS)
+    nfc_modulation_t THIS = NO_INIT
+    PROTOTYPE: $
+    CODE:
+    if (sv_derived_from(ST(0), "nfc_modulation_t")) {
+        STRLEN len;
+        char *s = SvPV((SV*)SvRV(ST(0)), len);
+        if (len != sizeof(THIS))
+        croak("Size %d of packed data != expected %d",
+            len, sizeof(THIS));
+        RETVAL = (nfc_modulation_t *)s;
+    }
+    else
+        croak("THIS is not of type nfc_modulation_t");
+    OUTPUT:
+    RETVAL
+
+nfc_modulation_t
+new(CLASS)
+    char *CLASS = NO_INIT
+    PROTOTYPE: $
+    CODE:
+    Zero((void*)&RETVAL, sizeof(RETVAL), char);
+    OUTPUT:
+    RETVAL
+
+MODULE = RFID::Libnfc        PACKAGE = nfc_modulation_tPtr
+
+nfc_modulation_type_t *
+nmt(THIS, __value = NO_INIT)
+    nfc_modulation_t *THIS
+    uint8_t __value
+    PROTOTYPE: $
+    CODE:
+    if (items > 1) {
+        THIS->nmt = __value;
+    }
+    RETVAL = &THIS->nmt;
+    OUTPUT:
+    RETVAL
+
+nfc_baud_rate_t *
+nbr(THIS, __value = NO_INIT)
+    nfc_modulation_t *THIS
+    uint8_t __value
+    PROTOTYPE: $
+    CODE:
+    if (items > 1) {
+        THIS->nbr = __value;
+    }
+    RETVAL = &THIS->nbr;
+    OUTPUT:
+    RETVAL
+
+MODULE = RFID::Libnfc        PACKAGE = nfc_target_t
+
+nfc_target_t *
+_to_ptr(THIS)
+    nfc_target_t THIS = NO_INIT
+    PROTOTYPE: $
+    CODE:
+    if (sv_derived_from(ST(0), "nfc_target_t")) {
+        STRLEN len;
+        char *s = SvPV((SV*)SvRV(ST(0)), len);
+        if (len != sizeof(THIS))
+        croak("Size %d of packed data != expected %d",
+            len, sizeof(THIS));
+        RETVAL = (nfc_target_t *)s;
+    }
+    else
+        croak("THIS is not of type nfc_target_t");
+    OUTPUT:
+    RETVAL
+
+nfc_target_t
+new(CLASS)
+    char *CLASS = NO_INIT
+    PROTOTYPE: $
+    CODE:
+    Zero((void*)&RETVAL, sizeof(RETVAL), char);
+    OUTPUT:
+    RETVAL
+
+MODULE = RFID::Libnfc        PACKAGE = nfc_target_tPtr
+
+nfc_target_info_t *
+nti(THIS, __value = NO_INIT)
+    nfc_target_t *THIS
+    nfc_target_info_t __value
+    PROTOTYPE: $
+    CODE:
+    if (items > 1) {
+        THIS->nti = __value;
+    }
+    RETVAL = &THIS->nti;
+    OUTPUT:
+    RETVAL
+
+nfc_modulation_t *
+nm(THIS, __value = NO_INIT)
+    nfc_target_t *THIS
+    nfc_modulation_t __value
+    PROTOTYPE: $
+    CODE:
+    if (items > 1) {
+        THIS->nm = __value;
+    }
+    RETVAL = &THIS->nm;
     OUTPUT:
     RETVAL
 

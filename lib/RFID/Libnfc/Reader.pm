@@ -52,7 +52,8 @@ sub print_hex {
 
 sub DESTROY {
     my $self = shift;
-    nfc_disconnect($self->{_pdi}) if ($self->{_pdi});
+    nfc_disconnect($self->{_pdi})
+        if ($self->{_pdi});
 }
 
 1;

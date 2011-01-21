@@ -10,7 +10,7 @@ our $VERSION = "0.10";
 sub init {
     my ($self) = @_;
     $self->{_keys} = [];
-    $self->{_nai} = $self->{_pti}->nai;
+    $self->{_nai} = $self->{_nti}->nai;
     return $self;
 }
 
@@ -54,7 +54,7 @@ sub atqa {
 sub uid {
     my $self = shift;
     unless ($self->{_uid}) {
-        my $uidLen = $self->{_nai}->uiUidLen;
+        my $uidLen = $self->{_nai}->szUidLen;
         if ($uidLen) {
             $self->{_uid} = [ unpack("C".$uidLen, $self->{_nai}->abtUid) ];
         }

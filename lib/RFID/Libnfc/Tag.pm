@@ -26,18 +26,19 @@ sub new {
     $self->{debug} = $reader->{debug};
     # Try to find the requested tag type
     $self->{_last_error} = "";
-    $self->{_ti} = nfc_target_info_t->new();
-    $self->{_pti} = $self->{_ti}->_to_ptr;
     $self->{reader} = $reader;
-    nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 0);
+    nfc_configure($reader->pdi, NDO_ACTIVATE_FIELD, 0);
     # Let the reader only try once to find a tag
-    nfc_configure($reader->pdi, DCO_INFINITE_SELECT, $blocking?1:0);
-    nfc_configure($reader->pdi, DCO_HANDLE_CRC, 1);
-    nfc_configure($reader->pdi, DCO_HANDLE_PARITY, 1);
+    nfc_configure($reader->pdi, NDO_INFINITE_SELECT, $blocking?1:0);
+    nfc_configure($reader->pdi, NDO_HANDLE_CRC, 1);
+    nfc_configure($reader->pdi, NDO_HANDLE_PARITY, 1);
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($reader->pdi, DCO_ACTIVATE_FIELD, 1);
+    nfc_configure($reader->pdi, NDO_ACTIVATE_FIELD, 1);
 
-    if (!nfc_initiator_select_passive_target($reader->pdi, $type, 0, 0, $self->{_pti}))
+    $self->{_t} = nfc_target_t->new();
+    $self->{_nti} = $self->{_t}->_to_ptr->nti;
+    $self->{_t}->_to_ptr->nm->nmt($type);
+    if (!nfc_initiator_select_passive_target($reader->pdi, $self->{_t}->_to_ptr->nm, 0, 0, $self->{_t}->_to_ptr))
     {
         #warn "No tag was found";
         return undef;
@@ -46,7 +47,7 @@ sub new {
     }
 
     if ($types{$type} && eval "require $types{$type};") {
-        my $productType = $types{$type}->type($self->{_pti});
+        my $productType = $types{$type}->type($self->{_nti});
         if ($productType && eval "require $types{$type}::$productType;") {
             bless $self, "$types{$type}::$productType";
         } else {

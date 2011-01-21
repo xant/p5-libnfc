@@ -25,20 +25,20 @@ if (!$pdi) {
 }
 nfc_initiator_init($pdi); 
 # Drop the field for a while
-nfc_configure($pdi, DCO_ACTIVATE_FIELD, 0);
+nfc_configure($pdi, NDO_ACTIVATE_FIELD, 0);
 # Let the reader only try once to find a tag
-nfc_configure($pdi, DCO_INFINITE_SELECT, 0);
-nfc_configure($pdi, DCO_HANDLE_CRC, 1);
-nfc_configure($pdi, DCO_HANDLE_PARITY, 1);
+nfc_configure($pdi, NDO_INFINITE_SELECT, 0);
+nfc_configure($pdi, NDO_HANDLE_CRC, 1);
+nfc_configure($pdi, NDO_HANDLE_PARITY, 1);
 # Enable field so more power consuming cards can power themselves up
-nfc_configure($pdi, DCO_ACTIVATE_FIELD, 1);
+nfc_configure($pdi, NDO_ACTIVATE_FIELD, 1);
 
 printf("Reader:\t%s\n", $pdi->acName);
 
 # Try to find a MIFARE Classic tag
-my $ti = nfc_target_info_t->new();
-my $pti = $ti->_to_ptr;
-if (!nfc_initiator_select_passive_target($pdi, IM_ISO14443A_106, 0, 0, $pti))
+my $pt = nfc_target_t->new();
+my $pti = $pt->_to_ptr;
+if (!nfc_initiator_select_passive_target($pdi, $pti->nm, 0, 0, $pti))
 {
     printf("Error: no tag was found\n");
     nfc_disconnect($pdi);
@@ -48,7 +48,7 @@ if (!nfc_initiator_select_passive_target($pdi, IM_ISO14443A_106, 0, 0, $pti))
 }
 
 # we are intereseted to the mifare part of the nfc_target_info_t union
-my $mifare = $pti->nai; 
+my $mifare = $pti->nti->nai; 
 # Test card type
 printf("Type:\t%s\n",
      ($mifare->btSak==0x00)?"ULTRA":
@@ -64,7 +64,7 @@ printf("Type:\t%s\n",
 
 printf("ATQA:\t%x,%x\n", unpack("CC", $mifare->abtAtqa));
 
-my $uidLen = $mifare->uiUidLen;
+my $uidLen = $mifare->szUidLen;
 my @uid = unpack("C".$uidLen, $mifare->abtUid);
 printf("UID:\t". "%x " x $uidLen ."\n", @uid);
 
