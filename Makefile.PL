@@ -34,13 +34,8 @@ open(NFC_H, "$NFC_INCDIR/nfc.h")
     or die "Can't find libnfc header ($NFC_INCDIR/nfc.h) : $!";
 while (<NFC_H>) {
     if ($_ =~ /nfc_initiator_(?:select|deselect)_tag/) {
-        $DEFINE = "-DNFC_DEPRECATED";
-        last;
+        die "Obsolete libnfc version. Please upgrade to last stable";
     } 
-    #elsif ($_ =~ /nfc_initiator_(?:select_passive|deselect)_target/) {
-    #   $DEFINE = "-DNFC_DEPRECATED";
-    #    last;
-    #}
 }
 close(NFC_H);
 

@@ -4,7 +4,7 @@ use strict;
 
 use base qw(RFID::Libnfc::Tag::ISO14443A_106::Classic);
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 # number of blocks in the tag
 sub blocks {

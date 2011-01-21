@@ -6,7 +6,7 @@ use RFID::Libnfc qw(nfc_configure nfc_initiator_select_passive_target nfc_initia
 use RFID::Libnfc::Constants;
 use Data::Dumper;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 my %types = (
     scalar(IM_ISO14443A_106) => 'RFID::Libnfc::Tag::ISO14443A_106'

@@ -346,9 +346,11 @@ nm(THIS, __value = NO_INIT)
     PROTOTYPE: $
     CODE:
     RFID__Libnfc__Modulation obj;
+    /* XXX - don't allow to change the modulation stored in the target description (for now)
     if (items > 1) {
         memcpy(&THIS->target->nm, __value->modulation, sizeof(nfc_modulation_t));
     }
+    */
     Newz(0, obj, 1, RFID__Libnfc__Modulation);
     obj->modulation = &THIS->target->nm;
     obj->free = false;
