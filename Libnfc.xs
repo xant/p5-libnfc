@@ -164,7 +164,7 @@ new(SV *CLASS)
     RETVAL
 
 char *
-acName(THIS, __value = NO_INIT)
+acName(THIS)
     RFID::Libnfc::Device THIS
     PROTOTYPE: $
     CODE:
@@ -175,7 +175,7 @@ acName(THIS, __value = NO_INIT)
     RETVAL
 
 nfc_chip_t
-nc(THIS, __value = NO_INIT)
+nc(THIS)
     RFID::Libnfc::Device THIS
     PROTOTYPE: $
     CODE:
@@ -186,7 +186,7 @@ nc(THIS, __value = NO_INIT)
     RETVAL
 
 nfc_device_spec_t 
-nds(THIS, __value = NO_INIT)
+nds(THIS)
     RFID::Libnfc::Device THIS
     PROTOTYPE: $
     CODE:
@@ -197,7 +197,7 @@ nds(THIS, __value = NO_INIT)
     RETVAL
 
 bool
-bActive(THIS, __value = NO_INIT)
+bActive(THIS)
     RFID::Libnfc::Device THIS
     PROTOTYPE: $
     CODE:

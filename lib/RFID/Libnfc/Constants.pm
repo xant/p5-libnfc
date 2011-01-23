@@ -59,6 +59,11 @@ BEGIN {    # must be defined at compile time
                 NBR_212           => 2,
                 NBR_424           => 3,
                 NBR_847           => 4
+            },
+            NC => {
+                NC_PN531          => 0x10,
+                NC_PN532          => 0x20,
+                NC_PN533          => 0x30
             }
         );
 }
@@ -241,6 +246,16 @@ RFID::Libnfc::Constants
  NBR_424           => 3,
 
  NBR_847           => 4
+
+=item * NC
+
+ NC_PN531          => 0x10
+
+ NC_PN532          => 0x20
+
+ NC_PN533          => 0x30
+
+
 
 =back
 
