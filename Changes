@@ -32,8 +32,9 @@ Revision history for Perl extension Libnfc.
 0.10  Fri Jan 21 13:54:35 CET 2011
         - added support for libnfc-1.4 API (the library keeps changing its API)
 0.11  Sat Jan 22 01:00:32 CET 2011
-        - dropped support for deprecated libnfc API
-          (older versions of this module can be used with older versions of the library)
+        - dropped support for libnfc API < 1.4
+          (older versions of this module could be eventually used together with
+          older versions of the libnfc library)
         - cleaner mapping of internal structures 
           (on the perl side it's not necessary anymore to care about retaining 
           the storage while references are being accessed)
