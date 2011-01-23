@@ -5,7 +5,6 @@ my $INC = "-I. ";
 my $LIBS = "-lnfc ";
 my $DEFINE = "";
 
-# detect libnfc (libnfc-stable installs its main header in <PREFIX>/include/libnfc/libnfc.h
 # while newer versions of the library (> 1.3) uses <PREFIX>/include/nfc/nfc.h
 # TODO - cleanup this shit
 my $NFC_INCDIR;
@@ -17,29 +16,25 @@ if (-d "/usr/include/libnfc") {
 } elsif (-d "/usr/include/nfc") {
     $NFC_INCDIR = "/usr/include/nfc";
     $NFC_LIBDIR = "/usr/lib";
-} elsif (-d "/usr/local/include/libnfc") {
-    die "Obsolete libnfc version. Please upgrade to last stable";
 } elsif (-d "/opt/local/include/nfc") {
     $NFC_INCDIR = "/opt/local/include/nfc";
     $NFC_LIBDIR = "/opt/local/lib";
-} elsif (-d "/opt/local/include/libnfc") {
-    die "Obsolete libnfc version. Please upgrade to last stable";
 } else {
     die "No libnfc installed"
 }
+
 $INC .= "-I$NFC_INCDIR"
     if ($NFC_INCDIR);
 $LIBS .= "-L$NFC_LIBDIR"
     if ($NFC_LIBDIR);
 
-# Check libnfc API (it has been changed with libnfc-1.3.4)
-open(NFC_H, "$NFC_INCDIR/nfc.h")
+# Check libnfc API version (it has been changed in libnfc-1.4.0)
+open(NFC_H, "$NFC_INCDIR/nfc-types.h")
     or die "Can't find libnfc header ($NFC_INCDIR/nfc.h) : $!";
-while (<NFC_H>) {
-    if ($_ =~ /nfc_initiator_(?:select|deselect)_tag/) {
-        die "Obsolete libnfc version. Please upgrade to last stable";
-    } 
-}
+my @lines = <NFC_H>;
+if (grep(/nfc_initiator_mifare_cmd/, @lines)) {
+    die "Obsolete libnfc version (< 1.4). Please upgrade to last stable";
+} 
 close(NFC_H);
 
 
