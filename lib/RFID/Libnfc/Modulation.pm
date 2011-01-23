@@ -67,7 +67,7 @@ xant
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by xant <xant@cpan.org>
+Copyright (C) 2009-2011 by xant <xant@cpan.org>
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
