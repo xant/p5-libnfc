@@ -14,8 +14,6 @@ sub init {
     return $self;
 }
 
-our $VERSION = '0.08';
-
 sub type {
     my $self = shift;
     my $type;
