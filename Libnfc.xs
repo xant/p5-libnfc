@@ -154,8 +154,8 @@ new(SV *CLASS)
     }
 
     // allocate the memory for the structure storage
-    Newz(0, self, 1, RFID__Libnfc__Device);
-    self->device = calloc(1, sizeof(nfc_device_t));
+    Newxz(self, 1, RFID__Libnfc__Device);
+    Newxz(self->device, 1, nfc_device_t);
     self->free = true;
     //self_ref = newRV_noinc((SV *)self);
     RETVAL = newSV(0);
@@ -243,7 +243,8 @@ DESTROY(THIS)
     RFID::Libnfc::Device THIS
     CODE:
     if (THIS->free)
-        free(THIS->device);
+        Safefree(THIS->device);
+    Safefree(THIS);
 
 MODULE = RFID::Libnfc::Modulation        PACKAGE = RFID::Libnfc::Modulation
 
@@ -261,8 +262,8 @@ new(SV *CLASS)
     }
 
     // allocate the memory for the structure storage
-    Newz(0, self, 1, RFID__Libnfc__Modulation );
-    self->modulation = calloc(1, sizeof(nfc_modulation_t));
+    Newxz(self, 1, RFID__Libnfc__Modulation );
+    Newxz(self->modulation, 1, nfc_modulation_t);
     self->free = true;
     //self_ref = newRV_noinc((SV *)self);
     RETVAL = newSV(0); /* This gets mortalized automagically */
@@ -302,7 +303,8 @@ DESTROY(THIS)
     RFID::Libnfc::Modulation THIS
     CODE:
     if (THIS->free)
-        free(THIS->modulation);
+        Safefree(THIS->modulation);
+    Safefree(THIS);
 
 MODULE = RFID::Libnfc::Target        PACKAGE = RFID::Libnfc::Target
 
@@ -320,8 +322,8 @@ new(SV *CLASS)
     }
 
     // allocate the memory for the structure storage
-    Newz(0, self, 1, RFID__Libnfc__Target );
-    self->target = calloc(1, sizeof(nfc_target_t));
+    Newxz(self, 1, RFID__Libnfc__Target );
+    Newxz(self->target, 1, nfc_target_t);
     self->free = true;
     //self_ref = newRV_noinc((SV *)self);
     RETVAL = newSV(0); /* This gets mortalized automagically */
@@ -351,7 +353,7 @@ nm(THIS, __value = NO_INIT)
         memcpy(&THIS->target->nm, __value->modulation, sizeof(nfc_modulation_t));
     }
     */
-    Newz(0, obj, 1, RFID__Libnfc__Modulation);
+    Newxz(obj, 1, RFID__Libnfc__Modulation);
     obj->modulation = &THIS->target->nm;
     obj->free = false;
     RETVAL = newSV(0); /* This gets mortalized automagically */
@@ -364,7 +366,8 @@ DESTROY(THIS)
     RFID::Libnfc::Target THIS
     CODE:
     if (THIS->free)
-        free(THIS->target);
+        Safefree(THIS->target);
+    Safefree(THIS);
 
 MODULE = RFID::Libnfc                PACKAGE = RFID::Libnfc                
 
@@ -403,14 +406,16 @@ nfc_configure(pnd, ndo, bEnable)
         nfc_device_option_t   ndo
         _Bool        bEnable
     CODE:
-       return nfc_configure(pnd->device, ndo, bEnable); 
+       RETVAL = nfc_configure(pnd->device, ndo, bEnable); 
+    OUTPUT:
+        RETVAL
 
 SV *
 nfc_connect()
     CODE:
         RFID__Libnfc__Device obj;
         nfc_device_t *pnd = nfc_connect(NULL);
-        Newz(0, obj, 1, RFID__Libnfc__Device);
+        Newxz(obj, 1, RFID__Libnfc__Device);
         obj->device = pnd;
         obj->free = false;
         RETVAL = newSV(0); /* This gets mortalized automagically */
@@ -448,7 +453,9 @@ _Bool
 nfc_initiator_init(pnd)
         RFID::Libnfc::Device pnd
     CODE:
-        return nfc_initiator_init(pnd->device);
+        RETVAL = nfc_initiator_init(pnd->device);
+    OUTPUT:
+        RETVAL
 
 SV *
 nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits)
@@ -459,16 +466,13 @@ nfc_initiator_transceive_bits(pnd, pbtTx, uiTxBits)
         int             rc;            
         uint32_t        len;
         size_t          puiRxBits = 0;
-        byte_t          *pbtRx;
+        byte_t          pbtRx[MAX_FRAME_LEN];
         SV              *sv = &PL_sv_undef;
     CODE:
-        pbtRx = malloc(MAX_FRAME_LEN);
+        sv = newSV(0);
         // TODO - handle parity
         if (nfc_initiator_transceive_bits(pnd->device, pbtTx, uiTxBits,  NULL, pbtRx, &puiRxBits, NULL))
-            sv = newSVpv((char *)pbtRx, puiRxBits/8);
-        else 
-            sv = newSV(0);
-        free(pbtRx);
+            sv_setpvn(sv, pbtRx, puiRxBits/8);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -483,18 +487,13 @@ nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen)
     PREINIT:
         int             rc;            
         uint32_t        len;
-        byte_t *        pbtRx;
+        byte_t          pbtRx[MAX_FRAME_LEN];
         size_t          puiRxLen = 0;
         SV              *sv = &PL_sv_undef;
     CODE:
-        pbtRx = malloc(MAX_FRAME_LEN);
+        sv = newSV(0);
         if (nfc_initiator_transceive_bytes(pnd->device, pbtTx, uiTxLen,  pbtRx, &puiRxLen))
-            sv = newSVpv((char *)pbtRx, puiRxLen);
-        else {
-            nfc_perror (pnd, "nfc_initiator_transceive_bytes");
-            sv = newSV(0);
-        }
-        free(pbtRx);
+            sv_setpvn(sv, pbtRx, puiRxLen);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -506,15 +505,12 @@ nfc_target_init(pnd, pnt)
         RFID::Libnfc::Target pnt
     PREINIT:
         SV *            sv;
-        byte_t *        pbtRx;
+        byte_t          pbtRx[MAX_FRAME_LEN];
         size_t          uiRxBits;
     CODE:
-        pbtRx = malloc(MAX_FRAME_LEN);
+        sv = newSV(0);
         if (nfc_target_init(pnd->device, pnt->target, pbtRx, &uiRxBits))
-            sv = newSVpv((char *)pbtRx, uiRxBits/8+1);
-        else 
-            sv = newSV(0);
-        free(pbtRx);
+            sv_setpvn(sv, pbtRx, uiRxBits/8+1);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -524,16 +520,13 @@ nfc_target_receive_bits(pnd)
         RFID::Libnfc::Device      pnd
     PREINIT:
         SV *            sv;
-        byte_t *        pbtRx;
+        byte_t          pbtRx[MAX_FRAME_LEN];
         byte_t          btRxPar;
         size_t          uiRxBits;
     CODE:
-        pbtRx = malloc(MAX_FRAME_LEN);
+        sv = newSV(0);
         if (nfc_target_receive_bits(pnd->device, pbtRx, &uiRxBits, &btRxPar))
-            sv = newSVpv((char *)pbtRx, uiRxBits/8+1);
-        else 
-            sv = newSV(0);
-        free(pbtRx);
+            sv_setpvn(sv, pbtRx, uiRxBits/8+1);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -545,16 +538,13 @@ nfc_target_receive_bytes(pnd, pbtRx)
         _Bool           rc;            
         uint32_t        len;
         size_t          puiRxLen;
-        byte_t *        pbtRx;
+        byte_t          pbtRx[MAX_FRAME_LEN];
         SV              *sv;
     CODE:
-        pbtRx = malloc(MAX_FRAME_LEN);
+        sv = newSV(0);
         rc = nfc_target_receive_bytes(pnd->device, pbtRx, &puiRxLen);
         if (rc)
-            sv = newSVpv((char *)pbtRx, puiRxLen);
-        else
-            sv = newSV(0);
-        free(pbtRx);
+            sv_setpvn(sv, pbtRx, puiRxLen);
         RETVAL = sv;
     OUTPUT:
         RETVAL
@@ -566,7 +556,9 @@ nfc_target_send_bits(pnd, pbtTx, uiTxBits, pbtTxPar)
         uint32_t        uiTxBits
         byte_t *        pbtTxPar
     CODE:
-        return nfc_target_send_bits(pnd->device, pbtTx, uiTxBits, pbtTxPar);
+        RETVAL = nfc_target_send_bits(pnd->device, pbtTx, uiTxBits, pbtTxPar);
+    OUTPUT:
+        RETVAL
 
 _Bool
 nfc_target_send_bytes(pnd, pbtTx, uiTxLen)
@@ -574,7 +566,9 @@ nfc_target_send_bytes(pnd, pbtTx, uiTxLen)
         byte_t *        pbtTx
         uint32_t        uiTxLen
     CODE:
-        return nfc_target_send_bytes(pnd->device, pbtTx, uiTxLen);
+        RETVAL = nfc_target_send_bytes(pnd->device, pbtTx, uiTxLen);
+    OUTPUT:
+        RETVAL
 
 void
 print_hex(__data, uiLen = NO_INIT)
