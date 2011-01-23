@@ -95,12 +95,13 @@ RFID::Libnfc::Constants
     use RFID::Libnfc::Constants qw(<category>);
 
     where <category> can be any of :
-    * NDO
-    * IM
-    * MC
-    * MU
-    * NMT
-    * NBR
+    - NDO
+    - IM
+    - MC
+    - MU
+    - NC
+    - NMT
+    - NBR
     
 
 =head1 DESCRIPTION
@@ -178,81 +179,76 @@ RFID::Libnfc::Constants
 =item * IM
 
  IM_ISO14443A_106  => 0x00,
-
+     Mifare Classic (both 1K and 4K) and ULTRA tags conform to IM_ISO14443A_106.
+     At the moment these are the only implemented tag types.
  IM_FELICA_212     => 0x01,
-
+    * UNIMPLEMENTED *
  IM_FELICA_424     => 0x02,
-
+    * UNIMPLEMENTED *
  IM_ISO14443B_106  => 0x03,
-
+    * UNIMPLEMENTED *
  IM_JEWEL_106      => 0x04
+    * UNIMPLEMENTED *
 
 =item * MC
 
  MC_AUTH_A         => 0x60,
-
+    Select the A key
  MC_AUTH_B         => 0x61,
-
+    Select the B key
  MC_READ           => 0x30,
-
+    Perform a read operation
  MC_WRITE          => 0xA0,
-
+    Perform a write operation
  MC_TRANSFER       => 0xB0,
-
+ 
  MC_DECREMENT      => 0xC0,
-
+    Increment the value of a byte
  MC_INCREMENT      => 0xC1,
-
+    Increment the value of a byte
  MC_STORE          => 0xC2
+
 
 =item * MU
 
  MU_REQA           => 0x26,
-
  MU_WUPA           => 0x52,
-
  MU_SELECT1        => 0x93,
-
  MU_SELECT2        => 0x95,
-
  MU_READ           => 0x30,
-
  MU_WRITE          => 0xA2,
-
  MU_CWRITE         => 0xA0,
-
  MU_HALT           => 0x50
 
 =item * NMT
 
  NMT_ISO14443A     => 0,
-
+     Mifare Classic (both 1K and 4K) and ULTRA tags conform to IM_ISO14443A_106.
+     At the moment these are the only implemented tag types.
  NMT_ISO14443B     => 1,
-
+     * UNIMPLEMENTED *
  NMT_FELICA        => 2,
-
+     * UNIMPLEMENTED *
  NMT_JEWEL         => 3,
-
+     * UNIMPLEMENTED *
  NMT_DEP           => 4
+     * UNIMPLEMENTED *
 
 =item * NBR
 
  NBR_UNDEFINED     => 0,
-
  NBR_106           => 1,
-
  NBR_212           => 2,
-
  NBR_424           => 3,
-
  NBR_847           => 4
 
 =item * NC
 
+ NC_UNDEFINED      => 0xff,
+    * Undefined reader type *
+    This will be returned also when an error condition occurs
  NC_PN531          => 0x10
-
  NC_PN532          => 0x20
-
  NC_PN533          => 0x30
 
 

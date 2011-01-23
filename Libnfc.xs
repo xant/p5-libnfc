@@ -181,7 +181,7 @@ nc(THIS)
     CODE:
     RETVAL = THIS->device
            ? THIS->device->nc
-           : -1;
+           : 0xff;
     OUTPUT:
     RETVAL
 
