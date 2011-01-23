@@ -278,10 +278,9 @@ nmt(THIS, __value = NO_INIT)
     uint8_t __value
     PROTOTYPE: $
     CODE:
-    if (items > 1) {
+    RETVAL = THIS->modulation->nmt; // old value will be returned
+    if (items > 1)
         THIS->modulation->nmt = __value;
-    }
-    RETVAL = THIS->modulation->nmt;
     OUTPUT:
     RETVAL
 
@@ -291,10 +290,9 @@ nbr(THIS, __value = NO_INIT)
     uint8_t __value
     PROTOTYPE: $
     CODE:
-    if (items > 1) {
-        THIS->modulation->nbr = __value;
-    }
     RETVAL = THIS->modulation->nbr;
+    if (items > 1)
+        THIS->modulation->nbr = __value;
     OUTPUT:
     RETVAL
 
@@ -453,7 +451,10 @@ _Bool
 nfc_initiator_init(pnd)
         RFID::Libnfc::Device pnd
     CODE:
-        RETVAL = nfc_initiator_init(pnd->device);
+        if (pnd)
+            RETVAL = nfc_initiator_init(pnd->device);
+        else
+            RETVAL = false;
     OUTPUT:
         RETVAL
 
