@@ -36,12 +36,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 	nfc_target_receive_bytes
 	nfc_target_send_bits
 	nfc_target_send_bytes
-	oddparity
 	print_hex
-	print_hex_bits
-	print_hex_par
-	swap_endian32
-	swap_endian64
 ) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -173,13 +168,7 @@ None by default.
   $data = nfc_target_receive_bytes($pdi)
   $bool = nfc_target_send_bits($pdi, $pbtTx, $uiTxBits, $pbtTxPar)
   $bool = nfc_target_send_bytes($pdi, $pbtTx, $uiTxLen)
-  $byte = oddparity($bt)
-  oddparity_byte_ts($pbtData, $uiLen, $pbtPar)
   print_hex($pbtData, [ $uiLen ])
-  print_hex_bits($pbtData, $uiBits)
-  print_hex_par($pbtData, $uiBits, $pbtDataPar)
-  swap_endian32($pui32)
-  swap_endian64($pui64)
 
 
 =head1 SEE ALSO

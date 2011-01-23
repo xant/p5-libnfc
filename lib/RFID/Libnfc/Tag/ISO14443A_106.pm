@@ -150,9 +150,9 @@ None by default.
 
 =over
 
-=item type
+=item * type
 
-returns the specific tag type actually hooked
+returns the specific tag type actually hooked (as string)
 
 can be any of: 
 
@@ -160,33 +160,33 @@ can be any of:
 
 (NOTE: only 4K and ULTRA are actually implemented)
 
-=item atqa ( )
+=item * atqa ( )
 
 Returns an arrayref containing the 2 atqa bytes 
 
-=item uid ( )
+=item * uid ( )
 
 Returns an arrayref containing all uid bytes
 
-=item btsak ( )
+=item * btsak ( )
 
 Returns the btsak byte (which is used to determine the tag type)
 
-=item ats ( )
+=item * ats ( )
 
-=item dump_info ( )
+=item * dump_info ( )
 
 Prints out all know information on the hooked tag
 
-=item ping ( )
+=item * ping ( )
 
 Return 1 if the tag is still reachable , 0 otherwise
 
-=item crc ( )
+=item * crc ( )
 
 Compute the crc as required by ISO14443A_106 standard
 
-=item error ( )
+=item * error ( )
 
 returns the underlying reader descriptor (to be used with the RFID::Libnfc procedural api)
 $pdi = $r->pdi

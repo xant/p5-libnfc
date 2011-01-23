@@ -121,11 +121,11 @@ None by default.
 
 =over
 
-=item reader
+=item * reader
 
 returns the current reader object ( RFID::Libnfc::Reader )
 
-=item error ()
+=item * error ()
 
 returns the underlying reader descriptor (to be used with the RFID::Libnfc procedural api)
 $pdi = $r->pdi
