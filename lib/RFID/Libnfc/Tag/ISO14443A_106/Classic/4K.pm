@@ -9,7 +9,7 @@ our $VERSION = '0.11';
 # refer to : MF1S703x.pdf 
 # for Classic-4K specification 
 
-# The 4K 8 bit EEPROM memory is organized in 32 sectors of 4 block
+# The 4K 8 bit EEPROM memory is organized in 32 sectors of 4 block
 # and 8 sectors of 16 blocks. One block contains 16 bytes 
 
 # ACL and memory access (read/write) follows the same rules 
