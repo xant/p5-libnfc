@@ -37,3 +37,8 @@ Revision history for Perl extension Libnfc.
         - cleaner mapping of internal structures 
           (on the perl side it's not necessary anymore to care about retaining 
           the storage while references are being accessed)
+0.12  Sun Jan 23 16:57:44 CET 2011
+        - fixed some leaks (check : 470f526a767817eaf0357e1d067b836a7e0d1d33)
+        - cleaned-up libnfc version checking logic in Makefile.PL
+        - wrapping allocation/release operations with proper perl macros in the XS code
+        - updated documentation

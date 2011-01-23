@@ -6,7 +6,7 @@ use base qw(RFID::Libnfc::Tag::ISO14443A_106::Classic);
 use RFID::Libnfc;
 use RFID::Libnfc::Constants;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 # number of blocks in the tag
 sub blocks {
