@@ -4,7 +4,7 @@ use strict;
 
 use base qw(RFID::Libnfc::Tag::ISO14443A_106::Classic);
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 # refer to : MF1S703x.pdf 
 # for Classic-4K specification 

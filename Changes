@@ -43,3 +43,5 @@ Revision history for Perl extension Libnfc.
         - cleaned-up libnfc version checking logic in Makefile.PL
         - wrapping allocation/release operations with proper perl macros in the XS code
         - updated documentation
+0.13 Mon Jan 24 01:23:59 CET 2011
+        - fixed support for Mifare classic 1K and 4K (was broken since 0.11)
