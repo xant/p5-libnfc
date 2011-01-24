@@ -188,8 +188,6 @@ Compute the crc as required by ISO14443A_106 standard
 
 =item * error ( )
 
-returns the underlying reader descriptor (to be used with the RFID::Libnfc procedural api)
-$pdi = $r->pdi
 
 =back
 
@@ -214,3 +212,4 @@ at your option, any later version of Perl 5 you may have available.
 
 
 =cut
+

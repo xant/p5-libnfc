@@ -1,9 +1,9 @@
-package RFID::Libnfc::Tag::ISO14443A_106::4K;
+package RFID::Libnfc::Tag::ISO14443A_106::Classic;
 
 use strict;
 
 use base qw(RFID::Libnfc::Tag::ISO14443A_106);
-use RFID::Libnfc qw(nfc_initiator_select_tag nfc_initiator_transceive_bytes print_hex);
+use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes print_hex);
 use RFID::Libnfc::Constants;
 
 our $VERSION = '0.12';
@@ -70,6 +70,14 @@ my %data_acl = (            # read, write, increment, decrement/restore/transfer
     7 => [ 0, 0, 0, 0 ]     #  never never    never      never
 );
 
+sub init {
+    my $self = shift;
+
+    nfc_configure($self->{reader}->pdi, NDO_AUTO_ISO14443_4, 0);
+    nfc_configure($self->{reader}->pdi, NDO_EASY_FRAMING, 1);
+    $self->SUPER::init(@_);
+}
+
 sub read_block {
     my ($self, $block, $noauth) = @_;
 
@@ -91,8 +99,9 @@ sub read_block {
         return undef unless 
             $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
-    my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $block);
-    if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $initiatior_exchange_data, 5)) {
+    #my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $block);
+    my $initiator_exchange_data = pack("C2", MC_READ, $block);
+    if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2)) {
         return unpack("a16", $resp); 
     } else {
         $self->{_last_error} = "Error reading $sector, block $block"; # XXX - does libnfc provide any clue on the ongoing error?
@@ -129,8 +138,9 @@ sub write_block {
             $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[1] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
 
-    my $initiator_exchange_data = pack("C5a16", 0xD4, 0x40, 0x01, MC_WRITE, $block, $data);
-    if (nfc_initiator_transceive_bytes($self->reader->pdi, $initiatior_exchange_data, 5+16)) {
+    #my $initiator_exchange_data = pack("C5a16", 0xD4, 0x40, 0x01, MC_WRITE, $block, $data);
+    my $initiator_exchange_data = pack("C2a16", MC_WRITE, $block, $data);
+    if (nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2+16)) {
         return 1;
     } else {
         # XXX can libnfc provide more info about the failure?
@@ -187,14 +197,12 @@ sub unlock {
     $keytype = MC_AUTH_A unless ($keytype and ($keytype == MC_AUTH_A or $keytype == MC_AUTH_B));
     my $keyidx = ($keytype == MC_AUTH_A) ? 0 : 1;
 
-    printf("unlocking sector $sector with key/uid : " .
-        "%x " x 6 . " ---- " . "%x " x 4 . "\n", unpack("C10", $mpt->mpa)) if $self->{debug};
-
-    my $initiator_exchange_data = pack("C5a6C4", 0xD4, 0x40, 0x01, $keytype, $tblock, $self->{_keys}->[$sector][$keyidx], @{$self->uid});
-    return 1 if (nfc_initiator_transceive_bytes($self->reader->pdi, $initiatior_exchange_data, 5+6+4));
+    #my $initiator_exchange_data = pack("C5a6C4", 0xD4, 0x40, 0x01, $keytype, $tblock, $self->{_keys}->[$sector][$keyidx], @{$self->uid});
+    my $initiator_exchange_data = pack("C2a6C4", $keytype, $tblock, $self->{_keys}->[$sector][$keyidx], @{$self->uid});
+    return 1 if (defined nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2+6+4));
 
     $self->{_last_error} = "Failed to authenticate on sector $sector (tblock:$tblock) with key " .
-        sprintf("%x " x 6 . "\n", unpack("C6", $mpt->mpa));
+        sprintf("%x " x 6 . "\n", unpack("C6", $self->{_keys}->[$sector][$keyidx]));
         
     return 0;
 }
@@ -204,10 +212,10 @@ sub acl {
     my $tblock = $self->trailer_block($sector);
 
     if ($self->unlock($sector)) {
-        my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $tblock);
-        if (nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 5)) {
-            my $j = $mpt->mpd;
-            return $self->_parse_acl(unpack("x6a4x6", $mpt->mpd));
+        #my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $tblock);
+        my $initiator_exchange_data = pack("C2", MC_READ, $tblock);
+        if (my $data = nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2)) {
+            return $self->_parse_acl(unpack("x6a4x6", $data));
         }
     }
     return undef;
