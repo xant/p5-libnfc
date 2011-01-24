@@ -74,6 +74,10 @@ sub init {
     my $self = shift;
 
     nfc_configure($self->{reader}->pdi, NDO_AUTO_ISO14443_4, 0);
+    # XXX - EASY_FRAMING has been introduced since libnfc 1.4 and 
+    #       and if enabled allows us to avoid sending the preamble 
+    #       when initiating the communication
+    # TODO - make it optional and continue supporting full raw-frame sending
     nfc_configure($self->{reader}->pdi, NDO_EASY_FRAMING, 1);
     $self->SUPER::init(@_);
 }
@@ -99,6 +103,7 @@ sub read_block {
         return undef unless 
             $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[0] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
+    # XXX - we are using EASY_FRAMING now .. so no need for the preamble
     #my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $block);
     my $initiator_exchange_data = pack("C2", MC_READ, $block);
     if (my $resp = nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2)) {
@@ -138,6 +143,7 @@ sub write_block {
             $self->unlock($sector, (@{$acl->{parsed}->{$datanum}}[1] == 2) ? MC_AUTH_B : MC_AUTH_A);
     }
 
+    # XXX - we are using EASY_FRAMING now .. so no need for the preamble
     #my $initiator_exchange_data = pack("C5a16", 0xD4, 0x40, 0x01, MC_WRITE, $block, $data);
     my $initiator_exchange_data = pack("C2a16", MC_WRITE, $block, $data);
     if (nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2+16)) {
@@ -197,6 +203,7 @@ sub unlock {
     $keytype = MC_AUTH_A unless ($keytype and ($keytype == MC_AUTH_A or $keytype == MC_AUTH_B));
     my $keyidx = ($keytype == MC_AUTH_A) ? 0 : 1;
 
+    # XXX - we are using EASY_FRAMING now .. so no need for the preamble
     #my $initiator_exchange_data = pack("C5a6C4", 0xD4, 0x40, 0x01, $keytype, $tblock, $self->{_keys}->[$sector][$keyidx], @{$self->uid});
     my $initiator_exchange_data = pack("C2a6C4", $keytype, $tblock, $self->{_keys}->[$sector][$keyidx], @{$self->uid});
     return 1 if (defined nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2+6+4));
@@ -212,6 +219,7 @@ sub acl {
     my $tblock = $self->trailer_block($sector);
 
     if ($self->unlock($sector)) {
+        # XXX - we are using EASY_FRAMING now .. so no need for the preamble
         #my $initiator_exchange_data = pack("C5", 0xD4, 0x40, 0x01, MC_READ, $tblock);
         my $initiator_exchange_data = pack("C2", MC_READ, $tblock);
         if (my $data = nfc_initiator_transceive_bytes($self->reader->pdi, $initiator_exchange_data, 2)) {
