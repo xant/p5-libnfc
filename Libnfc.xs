@@ -513,7 +513,6 @@ nfc_initiator_transceive_bytes(pnd, pbtTx, uiTxLen)
         size_t          puiRxLen = 0;
         SV              *sv = &PL_sv_undef;
     CODE:
-        int l;
         if (nfc_initiator_transceive_bytes(pnd->device, pbtTx, uiTxLen,  pbtRx, &puiRxLen))
             if (puiRxLen)
                 sv = newSVpv(pbtRx, puiRxLen);
