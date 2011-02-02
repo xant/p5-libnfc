@@ -99,12 +99,12 @@ szUidLen(THIS, __value = NO_INIT)
     OUTPUT:
     RETVAL
 
-char *
+SV *
 abtUid(THIS, __value = NO_INIT)
     RFID::Libnfc::ISO14443AInfo THIS
     PROTOTYPE: $
     CODE:
-    RETVAL = (char *)THIS->abtUid;
+    RETVAL = newSVpv(THIS->abtUid, THIS->szUidLen);
     OUTPUT:
     RETVAL
 
