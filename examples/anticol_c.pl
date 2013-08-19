@@ -31,24 +31,24 @@ sub transceive_bits {
     return undef;
 }
 
-my $pdi = nfc_connect();
+my $pdi = nfc_open();
 if ($pdi == 0) { 
     print "No device!\n"; 
     exit -1;
 }
 nfc_initiator_init($pdi); 
 
-nfc_configure($pdi, NDO_ACTIVATE_FIELD, 0);
+nfc_device_set_property_bool($pdi, NP_ACTIVATE_FIELD, 0);
 
 # Configure the CRC and Parity settings
-nfc_configure($pdi, NDO_HANDLE_CRC, 0);
-nfc_configure($pdi, NDO_HANDLE_PARITY, 1);
-nfc_configure($pdi, NDO_EASY_FRAMING, 0);
-nfc_configure($pdi, NDO_AUTO_ISO14443_4, 0);
-nfc_configure($pdi, NDO_FORCE_ISO14443_A, 1);
+nfc_device_set_property_bool($pdi, NP_HANDLE_CRC, 0);
+nfc_device_set_property_bool($pdi, NP_HANDLE_PARITY, 1);
+nfc_device_set_property_bool($pdi, NP_EASY_FRAMING, 0);
+nfc_device_set_property_bool($pdi, NP_AUTO_ISO14443_4, 0);
+nfc_device_set_property_bool($pdi, NP_FORCE_ISO14443_A, 1);
 
 # Enable field so more power consuming cards can power themselves up
-nfc_configure($pdi, NDO_ACTIVATE_FIELD, 1);
+nfc_device_set_property_bool($pdi, NP_ACTIVATE_FIELD, 1);
 my $cmd = pack("C", MU_REQA);
 if (my $resp = transceive_bits($pdi, $cmd, 7)) {
     $cmd = pack("C2", MU_SELECT1, 0x20); # ANTICOLLISION of cascade level 1
@@ -87,6 +87,9 @@ if (my $resp = transceive_bits($pdi, $cmd, 7)) {
 } else {
     warn "Device doesn't respond to REQA";
 }
+
+nfc_close($pdi);
+
 exit 0;
 
 

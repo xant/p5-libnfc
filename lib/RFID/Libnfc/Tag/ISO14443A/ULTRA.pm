@@ -1,9 +1,9 @@
-package RFID::Libnfc::Tag::ISO14443A_106::ULTRA;
+package RFID::Libnfc::Tag::ISO14443A::ULTRA;
 
 use strict;
 
-use base qw(RFID::Libnfc::Tag::ISO14443A_106);
-use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes nfc_initiator_transceive_bits iso14443a_crc_append print_hex);
+use base qw(RFID::Libnfc::Tag::ISO14443A);
+use RFID::Libnfc qw(nfc_device_set_property_bool nfc_initiator_transceive_bytes nfc_initiator_transceive_bits iso14443a_crc_append print_hex);
 use RFID::Libnfc::Constants;
 
 our $VERSION = '0.13';
@@ -108,7 +108,7 @@ sub sectors {
 sub acl {
     my $self = shift;
 
-    #nfc_configure($self->reader->pdi, NDO_EASY_FRAMING, 1);
+    #nfc_device_set_property_bool($self->reader->pdi, NP_EASY_FRAMING, 1);
     my $data = $self->read_block(2);
     if ($data) {
         return $self->_parse_locking_bits(unpack("x2a2", $data));
@@ -152,17 +152,17 @@ sub select {
 
     use bytes;
     my $uid = pack("C6", @{$self->uid});
-    nfc_configure($self->reader->pdi, NDO_ACTIVATE_FIELD, 0);
+    nfc_device_set_property_bool($self->reader->pdi, NP_ACTIVATE_FIELD, 0);
 
     # Configure the CRC and Parity settings
-    nfc_configure($self->reader->pdi, NDO_HANDLE_CRC, 0);
-    nfc_configure($self->reader->pdi, NDO_HANDLE_PARITY, 1);
-    nfc_configure($self->reader->pdi, NDO_EASY_FRAMING, 0); 
-    nfc_configure($self->reader->pdi, NDO_AUTO_ISO14443_4, 0); 
-    nfc_configure($self->reader->pdi, NDO_FORCE_ISO14443_A, 1); 
+    nfc_device_set_property_bool($self->reader->pdi, NP_HANDLE_CRC, 0);
+    nfc_device_set_property_bool($self->reader->pdi, NP_HANDLE_PARITY, 1);
+    nfc_device_set_property_bool($self->reader->pdi, NP_EASY_FRAMING, 0); 
+    nfc_device_set_property_bool($self->reader->pdi, NP_AUTO_ISO14443_4, 0); 
+    nfc_device_set_property_bool($self->reader->pdi, NP_FORCE_ISO14443_A, 1); 
 
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($self->reader->pdi, ,NDO_ACTIVATE_FIELD, 1);
+    nfc_device_set_property_bool($self->reader->pdi, ,NP_ACTIVATE_FIELD, 1);
     my $retry = 0;
     my $retrycnt = 0;
     do {
@@ -220,14 +220,14 @@ sub select {
 __END__
 =head1 NAME
 
-RFID::Libnfc::Tag::ISO14443A_106::ULTRA 
+RFID::Libnfc::Tag::ISO14443A::ULTRA 
 Specific implementation for mifare ultralight tags
 
 =head1 SYNOPSIS
 
   use RFID::Libnfc;
 
-  $tag = $r->connectTag(IM_ISO14443A_106);
+  $tag = $r->connectTag(NMT_ISO14443A);
 
   # so the 2-level cascade selection process as specified in M028634_MF0ICU1_Functional_Spec_V3.4.pdf 
   $tag->select()  
@@ -235,7 +235,7 @@ Specific implementation for mifare ultralight tags
 
 =head1 DESCRIPTION
 
-  Base class for ISO14443A_106 compliant tags
+  Base class for ISO14443Acompliant tags
 
 =head2 EXPORT
 
@@ -299,8 +299,8 @@ implements the 2-level cascade selection process
 
 =head1 SEE ALSO
 
-RFID::Libnfc::Tag::ISO14443A_106::ULTRA RFID::Libnfc::Tag::ISO14443A_106::4K
-RFID::Libnfc::Tag::ISO14443A_106 RFID::Libnfc::Constants RFID::Libnfc 
+RFID::Libnfc::Tag::ISO14443A::ULTRA RFID::Libnfc::Tag::ISO14443A::4K
+RFID::Libnfc::Tag::ISO14443A RFID::Libnfc::Constants RFID::Libnfc 
 
 **
 

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-use RFID::Libnfc qw(nfc_connect nfc_disconnect nfc_initiator_init nfc_configure);
+use RFID::Libnfc qw(nfc_open nfc_close nfc_initiator_init);
 use RFID::Libnfc::Tag;
 use RFID::Libnfc::Constants;
 
@@ -14,7 +14,7 @@ our $VERSION = '0.13';
 sub new {
     my ($class, %args) = @_;
     my $self = bless {%args}, $class;
-    $self->{_pdi} = nfc_connect();
+    $self->{_pdi} = nfc_open();
     croak "No device" unless $self->{_pdi};
     return $self;
 }
@@ -30,7 +30,7 @@ sub init {
 sub name {
     my $self = shift;
     unless($self->{_name}) {
-        $self->{_name} = $self->{_pdi}->acName;
+        $self->{_name} = $self->{_pdi}->name;
     }
     return $self->{_name};
 }
@@ -52,7 +52,7 @@ sub print_hex {
 
 sub DESTROY {
     my $self = shift;
-    nfc_disconnect($self->{_pdi})
+    nfc_close($self->{_pdi})
         if ($self->{_pdi});
 }
 
@@ -71,7 +71,7 @@ RFID::Libnfc::Reader - Access libnfc-compatible tag readers
     printf ("Reader: %s\n", $r->name);
   }
 
-  $tag = $r->connectTag(IM_ISO14443A_106);
+  $tag = $r->connectTag(NMT_ISO14443A);
 
 =head1 DESCRIPTION
 

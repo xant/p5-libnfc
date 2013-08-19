@@ -10,7 +10,7 @@ $Data::Dumper::Sortkeys++;
 my $r = RFID::Libnfc::Reader->new();
 if ($r->init()) {
     printf ("Reader: %s\n", $r->name);
-    my $tag = $r->connect(IM_ISO14443A_106);
+    my $tag = $r->connect(NMT_ISO14443A);
     if ($tag and $DEBUG) {
         $tag->dump_info;
     } else {

@@ -1,9 +1,9 @@
-package RFID::Libnfc::Tag::ISO14443A_106::Classic;
+package RFID::Libnfc::Tag::ISO14443A::Classic;
 
 use strict;
 
-use base qw(RFID::Libnfc::Tag::ISO14443A_106);
-use RFID::Libnfc qw(nfc_configure nfc_initiator_transceive_bytes print_hex);
+use base qw(RFID::Libnfc::Tag::ISO14443A);
+use RFID::Libnfc qw(nfc_device_set_property_bool nfc_initiator_transceive_bytes print_hex);
 use RFID::Libnfc::Constants;
 
 our $VERSION = '0.13';
@@ -73,12 +73,12 @@ my %data_acl = (            # read, write, increment, decrement/restore/transfer
 sub init {
     my $self = shift;
 
-    nfc_configure($self->{reader}->pdi, NDO_AUTO_ISO14443_4, 0);
+    nfc_device_set_property_bool($self->{reader}->pdi, NP_AUTO_ISO14443_4, 0);
     # XXX - EASY_FRAMING has been introduced since libnfc 1.4 and 
     #       and if enabled allows us to avoid sending the preamble 
     #       when initiating the communication
     # TODO - make it optional and continue supporting full raw-frame sending
-    nfc_configure($self->{reader}->pdi, NDO_EASY_FRAMING, 1);
+    nfc_device_set_property_bool($self->{reader}->pdi, NP_EASY_FRAMING, 1);
     $self->SUPER::init(@_);
 }
 

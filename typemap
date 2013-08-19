@@ -1,21 +1,19 @@
 _Bool                       T_IV
-byte_t                      T_U_CHAR
-byte_t *                    T_PV
-const byte_t *              T_PV
 void *                      T_PTROBJ
 const void *                T_PTROBJ
 nfc_device_spec_t           T_PTROBJ
-nfc_device_option_t         T_U_CHAR
-nfc_chip_t                  T_U_CHAR
-nfc_modulation_type_t       T_ENUM
-nfc_modulation_type_t *     T_PTROBJ
-nfc_baud_rate_t             T_ENUM
-nfc_baud_rate_t *           T_PTROBJ
+nfc_property                T_U_CHAR
+nfc_modulation_type         T_ENUM
+nfc_modulation_type *       T_PTROBJ
+nfc_baud_rate               T_ENUM
+nfc_baud_rate *             T_PTROBJ
 uint32_t                    T_UV
 uint32_t *                  T_PTROBJ
 size_t *                    T_PTROBJ
 uint64_t                    T_NV
 uint8_t                     T_U_CHAR
+uint8_t *                   T_PV
+const uint8_t *             T_PV
 RFID::Libnfc::ISO14443AInfo T_PTROBJ
 RFID::Libnfc::TargetInfo    T_PTROBJ
 RFID::Libnfc::Device        T_PTROBJ

@@ -20,7 +20,7 @@ RFID::Libnfc::Device
 
 =over
 
-=item * acName ( )
+=item * name ( )
 
 returns the printable name of the device
 

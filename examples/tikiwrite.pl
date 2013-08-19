@@ -9,7 +9,7 @@ my $r = RFID::Libnfc::Reader->new();
 die "Can't connect to reader" unless $r and $r->init;
 
 die "no input" unless $ARGV[0];
-my $tag = $r->connect(IM_ISO14443A_106);
+my $tag = $r->connect(NMT_ISO14443A);
 warn "No TAG" and exit -1 unless($tag);
 
 $tag->select;

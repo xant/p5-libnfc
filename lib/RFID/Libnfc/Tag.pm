@@ -2,14 +2,14 @@ package RFID::Libnfc::Tag;
 
 use strict;
 
-use RFID::Libnfc qw(nfc_configure nfc_initiator_select_passive_target nfc_initiator_deselect_target);
+use RFID::Libnfc qw(nfc_device_set_property_bool nfc_initiator_select_passive_target nfc_initiator_deselect_target);
 use RFID::Libnfc::Constants;
 use Data::Dumper;
 
 our $VERSION = '0.13';
 
 my %types = (
-    scalar(IM_ISO14443A_106) => 'RFID::Libnfc::Tag::ISO14443A_106'
+    scalar(NMT_ISO14443A) => 'RFID::Libnfc::Tag::ISO14443A'
 );
 
 sub new {
@@ -20,20 +20,20 @@ sub new {
         and ref($reader) 
         and UNIVERSAL::isa($reader, "RFID::Libnfc::Reader"));
 
-    $type = IM_ISO14443A_106 unless($type); #defaults to IM_ISO14443A_106
+    $type = NMT_ISO14443A unless($type); #defaults to NMT_ISO14443A
 
     my $self = {};
     $self->{debug} = $reader->{debug};
     # Try to find the requested tag type
     $self->{_last_error} = "";
     $self->{reader} = $reader;
-    nfc_configure($reader->pdi, NDO_ACTIVATE_FIELD, 0);
+    nfc_device_set_property_bool($reader->pdi, NP_ACTIVATE_FIELD, 0);
     # Let the reader only try once to find a tag
-    nfc_configure($reader->pdi, NDO_INFINITE_SELECT, $blocking?1:0);
-    nfc_configure($reader->pdi, NDO_HANDLE_CRC, 1);
-    nfc_configure($reader->pdi, NDO_HANDLE_PARITY, 1);
+    nfc_device_set_property_bool($reader->pdi, NP_INFINITE_SELECT, $blocking?1:0);
+    nfc_device_set_property_bool($reader->pdi, NP_HANDLE_CRC, 1);
+    nfc_device_set_property_bool($reader->pdi, NP_HANDLE_PARITY, 1);
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($reader->pdi, NDO_ACTIVATE_FIELD, 1);
+    nfc_device_set_property_bool($reader->pdi, NP_ACTIVATE_FIELD, 1);
 
     $self->{_t} = RFID::Libnfc::Target->new();
     $self->{_t}->nm->nmt($type);
@@ -105,7 +105,7 @@ RFID::Libnfc::Tag - base class for specific tag implementations
   use RFID::Libnfc;
   use RFID::Constants;
 
-  $tag = $r->connectTag(IM_ISO14443A_106);
+  $tag = $r->connectTag(NMT_ISO14443A);
 
 =head1 DESCRIPTION
 
@@ -134,8 +134,8 @@ $pdi = $r->pdi
 
 =head1 SEE ALSO
 
-RFID::Libnfc::Tag::ISO14443A_106::ULTRA RFID::Libnfc::Tag::ISO14443A_106::4K
-RFID::Libnfc::Tag::ISO14443A_106 RFID::Libnfc::Constants RFID::Libnfc 
+RFID::Libnfc::Tag::ISO14443A::ULTRA RFID::Libnfc::Tag::ISO14443A::4K
+RFID::Libnfc::Tag::ISO14443A RFID::Libnfc::Constants RFID::Libnfc 
 
 ** 
   check also documentation for libnfc c library 

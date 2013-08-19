@@ -18,30 +18,30 @@ use RFID::Libnfc ':all';
 use RFID::Libnfc::Constants ':all';
 
 
-my $pdi = nfc_connect();
+my $pdi = nfc_open();
 if (!$pdi) { 
     print "No device! Skipping tests\n"; 
     exit 0;
 }
 nfc_initiator_init($pdi); 
 # Drop the field for a while
-nfc_configure($pdi, NDO_ACTIVATE_FIELD, 0);
+nfc_device_set_property_bool($pdi, NP_ACTIVATE_FIELD, 0);
 # Let the reader only try once to find a tag
-nfc_configure($pdi, NDO_INFINITE_SELECT, 0);
-nfc_configure($pdi, NDO_HANDLE_CRC, 1);
-nfc_configure($pdi, NDO_HANDLE_PARITY, 1);
+nfc_device_set_property_bool($pdi, NP_INFINITE_SELECT, 0);
+nfc_device_set_property_bool($pdi, NP_HANDLE_CRC, 1);
+nfc_device_set_property_bool($pdi, NP_HANDLE_PARITY, 1);
 # Enable field so more power consuming cards can power themselves up
-nfc_configure($pdi, NDO_ACTIVATE_FIELD, 1);
+nfc_device_set_property_bool($pdi, NP_ACTIVATE_FIELD, 1);
 
-printf("Reader:\t%s\n", $pdi->acName);
+printf("Reader:\t%s\n", $pdi->name);
 
 # Try to find a MIFARE Classic tag
 my $pti = RFID::Libnfc::Target->new();
-$pti->nm->nmt(IM_ISO14443A_106);
+$pti->nm->nmt(NMT_ISO14443A);
 if (!nfc_initiator_select_passive_target($pdi, $pti->nm, 0, 0, $pti))
 {
     printf("Error: no tag was found\n");
-    nfc_disconnect($pdi);
+    nfc_close($pdi);
     exit 0;
 } else {
     printf("Card:\tNFC ISO14443A found\n");
@@ -76,5 +76,5 @@ if ($mifare->uiAtsLen) {
     printf("ATS:\t". "%x " x $atsLen ."\n", @ats);
 }
   
-nfc_disconnect($pdi);
+nfc_close($pdi);
 

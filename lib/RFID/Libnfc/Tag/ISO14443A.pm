@@ -1,4 +1,4 @@
-package RFID::Libnfc::Tag::ISO14443A_106;
+package RFID::Libnfc::Tag::ISO14443A;
 
 use strict;
 
@@ -18,7 +18,7 @@ sub type {
     my $self = shift;
     my $type;
     my $pti;
-    if (ref($self) and UNIVERSAL::isa($self, "RFID::Libnfc::Tag::ISO14443A_106")) { # instance method
+    if (ref($self) and UNIVERSAL::isa($self, "RFID::Libnfc::Tag::ISO14443A")) { # instance method
         $type = $self->{_type};
         $pti = $self->{_nai};
     } else { # instance method. expecting $pti as argument
@@ -125,20 +125,20 @@ sub crc {
 __END__
 =head1 NAME
 
-RFID::Libnfc::Tag - base class for ISO14443A_106 compliant tags.
+RFID::Libnfc::Tag - base class for ISO14443A compliant tags.
 You won't never use this module direcctly but all the logic 
-common to all ISO14443A_106 tags should be placed here 
+common to all ISO14443A tags should be placed here 
 (and inherited by all specific tag-implementations)
 
 =head1 SYNOPSIS
 
   use RFID::Libnfc;
 
-  $tag = $r->connectTag(IM_ISO14443A_106);
+  $tag = $r->connectTag(NMT_ISO14443A);
 
 =head1 DESCRIPTION
 
-  Base class for ISO14443A_106 compliant tags
+  Base class for ISO14443A compliant tags
 
 =head2 EXPORT
 
@@ -184,7 +184,7 @@ Return 1 if the tag is still reachable , 0 otherwise
 
 =item * crc ( )
 
-Compute the crc as required by ISO14443A_106 standard
+Compute the crc as required by ISO14443A standard
 
 =item * error ( )
 
@@ -193,8 +193,8 @@ Compute the crc as required by ISO14443A_106 standard
 
 =head1 SEE ALSO
 
-RFID::Libnfc::Tag::ISO14443A_106::ULTRA RFID::Libnfc::Tag::ISO14443A_106::4K
-RFID::Libnfc::Tag::ISO14443A_106 RFID::Libnfc::Constants RFID::Libnfc 
+RFID::Libnfc::Tag::ISO14443A::ULTRA RFID::Libnfc::Tag::ISO14443A::4K
+RFID::Libnfc::Tag::ISO14443A RFID::Libnfc::Constants RFID::Libnfc 
 
 < check also documentation for libnfc c library [ http://www.libnfc.org/documentation/introduction ] >
 

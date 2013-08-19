@@ -22,12 +22,12 @@ our $VERSION = '0.13';
 # will save memory.
 our %EXPORT_TAGS = ( 'all' => [ qw(
 	iso14443a_crc_append
-	nfc_configure
-	nfc_connect
-	nfc_disconnect
+	nfc_device_set_property_bool
+	nfc_open
+	nfc_close
 	nfc_initiator_deselect_target
 	nfc_initiator_init
-        nfc_initiator_transceive_bytes
+    nfc_initiator_transceive_bytes
 	nfc_initiator_select_passive_target
 	nfc_initiator_transceive_bits
 	nfc_initiator_transceive_bytes
@@ -94,7 +94,7 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
 
     $tag->load_keys($keyfile);
 
-    $tag = $r->connect(IM_ISO14443A_106);
+    $tag = $r->connect(NMT_ISO14443A);
     $tag->dumpInfo
 
     $block_data = $tag->read_block(240);
@@ -112,27 +112,27 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     use RFID::Libnfc::Constants ':all';
 
 
-    my $pdi = nfc_connect();
+    my $pdi = nfc_open();
     if ($pdi == 0) { 
         print "No device!\n"; 
         exit -1;
     }
     nfc_initiator_init($pdi); 
     # Drop the field for a while
-    nfc_configure($pdi, NDO_ACTIVATE_FIELD, 0);
+    nfc_device_set_property_bool($pdi, NP_ACTIVATE_FIELD, 0);
     # Let the reader only try once to find a tag
-    nfc_configure($pdi, NDO_INFINITE_SELECT, 0);
-    nfc_configure($pdi, NDO_HANDLE_CRC, 1);
-    nfc_configure($pdi, NDO_HANDLE_PARITY, 1);
+    nfc_device_set_property_bool($pdi, NP_INFINITE_SELECT, 0);
+    nfc_device_set_property_bool($pdi, NP_HANDLE_CRC, 1);
+    nfc_device_set_property_bool($pdi, NP_HANDLE_PARITY, 1);
     # Enable field so more power consuming cards can power themselves up
-    nfc_configure($pdi, NDO_ACTIVATE_FIELD, 1);
+    nfc_device_set_property_bool($pdi, NP_ACTIVATE_FIELD, 1);
 
-    printf("Reader:\t%s\n", $pdi->acName);
+    printf("Reader:\t%s\n", $pdi->name);
 
     # Try to find a MIFARE Classic tag
     my $ti = nfc_target_info_t->new();
     my $pti = $ti->_to_ptr;
-    my $bool = nfc_initiator_select_passive_target($pdi, IM_ISO14443A_106, 0, 0, $pti);
+    my $bool = nfc_initiator_select_passive_target($pdi, NMT_ISO14443A, 0, 0, $pti);
 
     #read UID out of the tag
     my $uidLen = $pti->nai->uiUidLen;
@@ -140,7 +140,7 @@ RFID::Libnfc - Perl extension for libnfc (Near Field Communication < http://www.
     printf("UID:\t". "%x " x $uidLen ."\n", @uid);
 
     # disconnects the tag
-    nfc_disconnect($pdi);
+    nfc_close($pdi);
 
   
 =head1 DESCRIPTION
@@ -155,9 +155,10 @@ None by default.
 =head2 Exportable functions
 
   iso14443a_crc_append($pbtData, $uiLen)
-  $pci = nfc_connect()
-  nfc_disconnect($pdi)
-  $bool = nfc_configure($pdi, $ndo, $bEnable)
+  $pci = nfc_open()
+  nfc_close($pdi)
+  $bool = nfc_device_set_property_bool($pdi, $ndo, $bEnable)
+  $bool = nfc_device_set_property_int($pdi, $ndo, $value)
   $bool = nfc_initiator_deselect_target($pdi)
   $bool = nfc_initiator_init($pdi)
   $bool = nfc_initiator_select_passive_target($pdi, $im, $pbtInitData, $uiInitDataLen, $pti)

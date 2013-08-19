@@ -1,8 +1,8 @@
-package RFID::Libnfc::Tag::ISO14443A_106::Classic::4K;
+package RFID::Libnfc::Tag::ISO14443A::Classic::4K;
 
 use strict;
 
-use base qw(RFID::Libnfc::Tag::ISO14443A_106::Classic);
+use base qw(RFID::Libnfc::Tag::ISO14443A::Classic);
 
 our $VERSION = '0.13';
 

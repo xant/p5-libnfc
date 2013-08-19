@@ -7,26 +7,24 @@ our $VERSION = '0.13';
 BEGIN {    # must be defined at compile time
         %constants = (
 
-            NDO => {    # export tag
-                NDO_HANDLE_CRC             => 0x00,
-                NDO_HANDLE_PARITY          => 0x01,
-                NDO_ACTIVATE_FIELD         => 0x10,
-                NDO_ACTIVATE_CRYPTO1       => 0x11,
-                NDO_INFINITE_SELECT        => 0x20,
-                NDO_ACCEPT_INVALID_FRAMES  => 0x30,
-                NDO_ACCEPT_MULTIPLE_FRAMES => 0x31,
-                NDO_AUTO_ISO14443_4        => 0x40,
-                NDO_EASY_FRAMING           => 0x41,
-                NDO_FORCE_ISO14443_A       => 0x42,
+            NP => {    # export tag
+                NP_TIMEOUT_COMMAND        => 0,
+                NP_TIMEOUT_ATR            => 1,
+                NP_TIMEOUT_COM            => 2,
+                NP_HANDLE_CRC             => 3,
+                NP_HANDLE_PARITY          => 4,
+                NP_ACTIVATE_FIELD         => 5,
+                NP_ACTIVATE_CRYPTO1       => 6,
+                NP_INFINITE_SELECT        => 7,
+                NP_ACCEPT_INVALID_FRAMES  => 8,
+                NP_ACCEPT_MULTIPLE_FRAMES => 9,
+                NP_AUTO_ISO14443_4        => 10,
+                NP_EASY_FRAMING           => 11,
+                NP_FORCE_ISO14443_A       => 12,
+                NP_FORCE_ISO14443_B       => 13,
+                NP_FORCE_SPEED_106        => 14,
             },
-            IM => {
-                IM_ISO14443A_106  => 0x00,
-                IM_FELICA_212     => 0x01,
-                IM_FELICA_424     => 0x02,
-                IM_ISO14443B_106  => 0x03,
-                IM_JEWEL_106      => 0x04
-            },
-            MC => {
+            MC => { # mifare classic
                 MC_AUTH_A         => 0x60,
                 MC_AUTH_B         => 0x61,
                 MC_READ           => 0x30,
@@ -36,7 +34,7 @@ BEGIN {    # must be defined at compile time
                 MC_INCREMENT      => 0xC1,
                 MC_STORE          => 0xC2
             },
-            MU => {
+            MU => { # mifare ultra
                 MU_REQA           => 0x26,
                 MU_WUPA           => 0x52,
                 MU_SELECT1        => 0x93,
@@ -47,11 +45,14 @@ BEGIN {    # must be defined at compile time
                 MU_HALT           => 0x50
             },
             NMT => {
-                NMT_ISO14443A     => 0,
-                NMT_ISO14443B     => 1,
-                NMT_FELICA        => 2,
-                NMT_JEWEL         => 3,
-                NMT_DEP           => 4
+                NMT_ISO14443A     => 1,
+                NMT_JEWEL         => 2,
+                NMT_ISO14443B     => 3,
+                NMT_ISO14443Bl    => 4, # pre-ISO14443B aka ISO/IEC 14443 B' or Type B'
+                NMT_ISO14443B2SR  => 5, # ISO14443-2B ST SRx
+                NMT_ISO14443B2CT  => 6, # ISO14443-2B ASK CTx
+                NMT_FELICA        => 7,
+                NMT_DEP           => 8
             },
             NBR => {
                 NBR_UNDEFINED     => 0,
@@ -59,11 +60,6 @@ BEGIN {    # must be defined at compile time
                 NBR_212           => 2,
                 NBR_424           => 3,
                 NBR_847           => 4
-            },
-            NC => {
-                NC_PN531          => 0x10,
-                NC_PN532          => 0x20,
-                NC_PN533          => 0x30
             }
         );
 }
@@ -95,7 +91,7 @@ RFID::Libnfc::Constants
     use RFID::Libnfc::Constants qw(<category>);
 
     where <category> can be any of :
-    - NDO
+    - NP
     - IM
     - MC
     - MU
@@ -112,9 +108,9 @@ RFID::Libnfc::Constants
 
 =over
 
-=item * NDO
+=item * NP
 
- NDO_HANDLE_CRC => 0x00,
+ NP_HANDLE_CRC => 0x00,
      Let the PN53X chip handle the CRC bytes. This means that the chip appends
      the CRC bytes to the frames that are transmitted. It will parse the last
      bytes from received frames as incoming CRC bytes. They will be verified
@@ -123,7 +119,7 @@ RFID::Libnfc::Constants
      this is useful are the ATQA and UID+BCC that are transmitted without CRC
      bytes during the anti-collision phase of the ISO14443-A protocol. 
 
- NDO_HANDLE_PARITY => 0x01,
+ NP_HANDLE_PARITY => 0x01,
      Parity bits in the network layer of ISO14443-A are by default generated and
      validated in the PN53X chip. This is a very convenient feature. On certain
      times though it is useful to get full control of the transmitted data. The
@@ -132,28 +128,28 @@ RFID::Libnfc::Constants
      compatible, including the arbitrary parity bits. When this option is
      disabled, the functions to communicating bits should be used. 
 
- NDO_ACTIVATE_FIELD => 0x10,
+ NP_ACTIVATE_FIELD => 0x10,
      This option can be used to enable or disable the electronic field of the
      NFC device. 
 
- NDO_ACTIVATE_CRYPTO1 => 0x11,
+ NP_ACTIVATE_CRYPTO1 => 0x11,
      The internal CRYPTO1 co-processor can be used to transmit messages
      encrypted. This option is automatically activated after a successful MIFARE
      Classic authentication. 
 
- NDO_INFINITE_SELECT => 0x20,
+ NP_INFINITE_SELECT => 0x20,
      The default configuration defines that the PN53X chip will try indefinitely
      to invite a tag in the field to respond. This could be desired when it is
      certain a tag will enter the field. On the other hand, when this is
      uncertain, it will block the application. This option could best be compared
      to the (NON)BLOCKING option used by (socket)network programming. 
 
- NDO_ACCEPT_INVALID_FRAMES => 0x30,
+ NP_ACCEPT_INVALID_FRAMES => 0x30,
      If this option is enabled, frames that carry less than 4 bits are allowed.
      According to the standards these frames should normally be handles as
      invalid frames. 
 
- NDO_ACCEPT_MULTIPLE_FRAMES => 0x31,
+ NP_ACCEPT_MULTIPLE_FRAMES => 0x31,
      If the NFC device should only listen to frames, it could be useful to let
      it gather multiple frames in a sequence. They will be stored in the internal
      FIFO of the PN53X chip. This could be retrieved by using the receive data
@@ -161,7 +157,7 @@ RFID::Libnfc::Constants
      it will overwrite the first received frames, so quick retrieving of the
      received data is desirable. 
 
- NDO_AUTO_ISO14443_4 => 0x40,
+ NP_AUTO_ISO14443_4 => 0x40,
      This option can be used to enable or disable the auto-switching mode to
      ISO14443-4 is device is compliant.
      In initiator mode, it means that NFC chip will send RATS automatically when
@@ -170,25 +166,11 @@ RFID::Libnfc::Constants
      In target mode, with a NFC chip compiliant (ie. PN532), the chip will
      emulate a 14443-4 PICC using hardware capability 
 
- NDO_EASY_FRAMING => 0x41,
+ NP_EASY_FRAMING => 0x41,
      Use automatic frames encapsulation and chaining. 
 
- NDO_FORCE_ISO14443_A => 0x42,
+ NP_FORCE_ISO14443_A => 0x42,
      Force the chip to switch in ISO14443-A 
-
-=item * IM
-
- IM_ISO14443A_106  => 0x00,
-     Mifare Classic (both 1K and 4K) and ULTRA tags conform to IM_ISO14443A_106.
-     At the moment these are the only implemented tag types.
- IM_FELICA_212     => 0x01,
-    * UNIMPLEMENTED *
- IM_FELICA_424     => 0x02,
-    * UNIMPLEMENTED *
- IM_ISO14443B_106  => 0x03,
-    * UNIMPLEMENTED *
- IM_JEWEL_106      => 0x04
-    * UNIMPLEMENTED *
 
 =item * MC
 
@@ -223,7 +205,7 @@ RFID::Libnfc::Constants
 =item * NMT
 
  NMT_ISO14443A     => 0,
-     Mifare Classic (both 1K and 4K) and ULTRA tags conform to IM_ISO14443A_106.
+     Mifare Classic (both 1K and 4K) and ULTRA tags conform to NMT_ISO14443A_106.
      At the moment these are the only implemented tag types.
  NMT_ISO14443B     => 1,
      * UNIMPLEMENTED *
